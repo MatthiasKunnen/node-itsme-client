@@ -1,0 +1,14 @@
+{
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        "declaration": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "outDir": "../dist",
+        "strictFunctionTypes": true,
+        "strictNullChecks": true,
+        "stripInternal": true,
+        "suppressImplicitAnyIndexErrors": true
+    }
+}

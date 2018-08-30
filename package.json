@@ -1,0 +1,23 @@
+{
+    "name": "itsme-client",
+    "version": "0.1.0",
+    "description": "A library to process itsme responses and consume itsme endpoints.",
+    "main": "index.js",
+    "scripts": {
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MatthiasKunnen/node-itsme-client.git"
+    },
+    "keywords": [
+        "itsme",
+        "client",
+        "node"
+    ],
+    "author": "Matthias Kunnen <matthias.kunnen@gmail.com>",
+    "license": "LGPL-3.0-only",
+    "bugs": {
+        "url": "https://github.com/MatthiasKunnen/node-itsme-client/issues"
+    },
+    "homepage": "https://github.com/MatthiasKunnen/node-itsme-client#readme"
+}

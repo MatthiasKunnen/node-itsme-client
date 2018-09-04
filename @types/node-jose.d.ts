@@ -1,30 +1,31 @@
 // Types for node-jose, modified to adhere to tslint. Original from SimonSchick.
 // See https://github.com/cisco/node-jose/issues/135.
 // These typings are not 100% complete.
+/* tslint:disable */
 
 declare module 'node-jose' {
     import { Buffer } from 'buffer';
 
-    export const JWA: {
+    interface JWA {
         digest(): any;
         derive(): any;
         sign(): any;
         verify(): any;
         encrypt(): any;
         decrypt(): any;
-    };
+    }
 
-    export interface JWEEncryptor {
+    interface JWEEncryptor {
         update(input: any): this;
 
         final(): Promise<string>;
     }
 
-    export interface JWEDecryptor {
+    interface JWEDecryptor {
         decrypt(input: string): Promise<JWEDecryptResult>;
     }
 
-    export interface BaseResult {
+    interface BaseResult {
         /**
          * the combined 'protected' and 'unprotected' header members
          */
@@ -39,7 +40,7 @@ declare module 'node-jose' {
         key: JWKKey;
     }
 
-    export interface JWEDecryptResult {
+    interface JWEDecryptResult {
         /**
          * an array of the member names from the "protected" member
          */
@@ -50,7 +51,7 @@ declare module 'node-jose' {
         plaintext: Buffer;
     }
 
-    export const JWE: {
+    interface JWE {
         createEncrypt(key: JWKKey | JWKKey[]): JWEEncryptor;
         createEncrypt(options: {
             format?: 'compact' | 'flattened';
@@ -58,11 +59,11 @@ declare module 'node-jose' {
 
         }, key: JWKKey): JWEEncryptor;
         createDecrypt(key: JWKKey): JWEDecryptor;
-    };
+    }
 
-    export type KeyUse = 'sig' | 'enc' | 'desc';
+    type KeyUse = 'sig' | 'enc' | 'desc';
 
-    export interface RawKey {
+    interface RawKey {
         alg: string;
         kty: string;
         use: KeyUse;
@@ -72,17 +73,17 @@ declare module 'node-jose' {
         n: string;
     }
 
-    export interface KeyStoreGetFilter {
+    interface KeyStoreGetFilter {
         kty?: string;
         use?: KeyUse;
         alg: string;
     }
 
-    export interface KeyStoreGetOptions extends KeyStoreGetFilter {
+    interface KeyStoreGetOptions extends KeyStoreGetFilter {
         kid: string;
     }
 
-    export interface KeyStore {
+    interface KeyStore {
         toJSON(exportPrivateKeys?: boolean): object;
 
         get(kid: string, filter?: KeyStoreGetFilter): JWKKey;
@@ -116,7 +117,7 @@ declare module 'node-jose' {
         remove(key: JWKKey);
     }
 
-    export interface JWKKey {
+    interface JWKKey {
         keystore: KeyStore;
         length: number;
         kty: string;
@@ -145,7 +146,7 @@ declare module 'node-jose' {
         toPEM(isPrivate?: boolean);
     }
 
-    export const JWK: {
+    interface JWK {
         MODE_SGN: 'sign';
         MODE_VERFY: 'verify';
         MODE_ENCRYPT: 'encrypt';
@@ -177,27 +178,27 @@ declare module 'node-jose' {
             key: string | Buffer,
             form: 'json' | 'private' | 'pkcs8' | 'public' | 'spki' | 'pkix' | 'x509' | 'pem',
         ): Promise<JWKKey>;
-    };
+    }
 
-    export interface VerificationResult extends BaseResult {
+    interface VerificationResult extends BaseResult {
         /**
          * the verified signature
          */
         signature: Buffer;
     }
 
-    export interface JWSVerifier {
+    interface JWSVerifier {
         verify(input: string): Promise<VerificationResult>;
     }
 
-    export const JWS: {
+    interface JWS {
         /**
          * Using a keystore.
          */
         createVerify(keyStore?: KeyStore | JWKKey): JWSVerifier;
-    };
+    }
 
-    export type TypedArray =
+    type TypedArray =
         Uint8Array |
         Uint8ClampedArray |
         Uint16Array |
@@ -205,7 +206,7 @@ declare module 'node-jose' {
         Float32Array |
         Float64Array;
 
-    export const util: {
+    interface util {
         base64url: {
             encode(data: Buffer, encoding: string): string;
             decode(str: string): Buffer;
@@ -216,11 +217,23 @@ declare module 'node-jose' {
         }
         asBuffer(arr: ArrayBuffer | ArrayLike<any> | TypedArray): Buffer;
         randomBytes(size: number): Buffer;
-    };
+    }
 
-    export const parse: {
-        (input: string | Buffer | object): object;
-        compact(input: string): object;
-        json(input: object): object;
-    };
+
+    class jose {
+        JWE: JWE;
+        JWK: JWK;
+        JWS: JWS;
+        parse: {
+            (input: string | Buffer | object): object;
+            compact(input: string): object;
+            json(input: object): object;
+        };
+        util: util;
+
+        KeyStore: KeyStore;
+        RawKey: RawKey;
+    }
+
+    export = jose;
 }

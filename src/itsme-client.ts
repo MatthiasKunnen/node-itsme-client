@@ -40,7 +40,7 @@ export class ItsmeClient {
     async exchangeAuthorizationCode(
         authorizationCode: string,
         redirectUri: string,
-    ) {
+    ): Promise<TokenResponse> {
         const exp = new Date();
         exp.setUTCMilliseconds(exp.getUTCMilliseconds() + 5 * 60 * 1000);
         const clientAssertion = {
@@ -64,7 +64,10 @@ export class ItsmeClient {
             client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
         };
 
-        const tokenResponse = await this.http.post(this.idp.configuration.token_endpoint, body);
+        const tokenResponse = await this.http.post<TokenResponse>(
+            this.idp.configuration.token_endpoint,
+            body,
+        );
 
         return tokenResponse.data;
     }

@@ -1,4 +1,4 @@
-import * as jose from 'node-jose';
+import { KeyStore } from 'node-jose';
 
 /**
  * The configuration of the relying party.
@@ -16,7 +16,7 @@ export interface ItsmeRdpConfiguration {
      * {@link https://belgianmobileid.github.io/slate/private_jwks.json} for a
      * default JWK set.
      */
-    keyStore: jose.KeyStore;
+    keyStore: KeyStore;
 }
 
 export interface ItsmeDiscoveryConfiguration {

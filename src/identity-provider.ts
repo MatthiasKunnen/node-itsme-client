@@ -1,14 +1,14 @@
 import Axios from 'axios';
 import * as LRU from 'lru-cache';
 import * as ms from 'ms';
-import * as jose from 'node-jose';
+import { JWK, JWKKey, KeyStore } from 'node-jose';
 
 import { ItsmeDiscoveryConfiguration } from './interfaces/itsme-configuration.interface';
 
 export class IdentityProvider {
 
     private cache: LRU.Cache<string, boolean>;
-    private keyStore: jose.KeyStore;
+    private keyStore: KeyStore;
     private readonly keyPrefix = 'key/';
 
     /**
@@ -62,7 +62,7 @@ export class IdentityProvider {
         }
 
         const jwkSetResponse = await Axios.get(this.configuration.jwks_uri);
-        this.keyStore = await jose.JWK.asKeyStore(jwkSetResponse.data);
+        this.keyStore = await JWK.asKeyStore(jwkSetResponse.data);
         this.cache.reset();
         this.cache.set('throttle', true, ms('1m')); // Throttle for 1 minute
     }

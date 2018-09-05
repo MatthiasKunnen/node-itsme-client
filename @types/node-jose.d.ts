@@ -6,7 +6,7 @@
 declare module 'node-jose' {
     import { Buffer } from 'buffer';
 
-    interface JWA {
+    export interface JWA {
         digest(): any;
         derive(): any;
         sign(): any;
@@ -15,17 +15,17 @@ declare module 'node-jose' {
         decrypt(): any;
     }
 
-    interface JWEEncryptor {
+    export interface JWEEncryptor {
         update(input: any): this;
 
         final(): Promise<string>;
     }
 
-    interface JWEDecryptor {
+    export interface JWEDecryptor {
         decrypt(input: string): Promise<JWEDecryptResult>;
     }
 
-    interface BaseResult {
+    export interface BaseResult {
         /**
          * the combined 'protected' and 'unprotected' header members
          */
@@ -40,7 +40,7 @@ declare module 'node-jose' {
         key: JWKKey;
     }
 
-    interface JWEDecryptResult {
+    export interface JWEDecryptResult {
         /**
          * an array of the member names from the "protected" member
          */
@@ -51,7 +51,7 @@ declare module 'node-jose' {
         plaintext: Buffer;
     }
 
-    interface JWE {
+    export interface JWE {
         createEncrypt(key: JWKKey | JWKKey[]): JWEEncryptor;
         createEncrypt(options: {
             format?: 'compact' | 'flattened';
@@ -63,7 +63,7 @@ declare module 'node-jose' {
 
     type KeyUse = 'sig' | 'enc' | 'desc';
 
-    interface RawKey {
+    export interface RawKey {
         alg: string;
         kty: string;
         use: KeyUse;
@@ -73,17 +73,17 @@ declare module 'node-jose' {
         n: string;
     }
 
-    interface KeyStoreGetFilter {
+    export interface KeyStoreGetFilter {
         kty?: string;
         use?: KeyUse;
         alg: string;
     }
 
-    interface KeyStoreGetOptions extends KeyStoreGetFilter {
+    export interface KeyStoreGetOptions extends KeyStoreGetFilter {
         kid: string;
     }
 
-    interface KeyStore {
+    export interface KeyStore {
         toJSON(exportPrivateKeys?: boolean): object;
 
         get(kid: string, filter?: KeyStoreGetFilter): JWKKey;
@@ -117,7 +117,7 @@ declare module 'node-jose' {
         remove(key: JWKKey);
     }
 
-    interface JWKKey {
+    export interface JWKKey {
         keystore: KeyStore;
         length: number;
         kty: string;
@@ -146,7 +146,7 @@ declare module 'node-jose' {
         toPEM(isPrivate?: boolean);
     }
 
-    interface JWK {
+    export interface JWK {
         MODE_SGN: 'sign';
         MODE_VERFY: 'verify';
         MODE_ENCRYPT: 'encrypt';
@@ -180,25 +180,25 @@ declare module 'node-jose' {
         ): Promise<JWKKey>;
     }
 
-    interface VerificationResult extends BaseResult {
+    export interface VerificationResult extends BaseResult {
         /**
          * the verified signature
          */
         signature: Buffer;
     }
 
-    interface JWSVerifier {
+    export interface JWSVerifier {
         verify(input: string): Promise<VerificationResult>;
     }
 
-    interface JWS {
+    export interface JWS {
         /**
          * Using a keystore.
          */
         createVerify(keyStore?: KeyStore | JWKKey): JWSVerifier;
     }
 
-    type TypedArray =
+    export type TypedArray =
         Uint8Array |
         Uint8ClampedArray |
         Uint16Array |
@@ -206,7 +206,7 @@ declare module 'node-jose' {
         Float32Array |
         Float64Array;
 
-    interface util {
+    export interface util {
         base64url: {
             encode(data: Buffer, encoding: string): string;
             decode(str: string): Buffer;
@@ -220,7 +220,7 @@ declare module 'node-jose' {
     }
 
 
-    class jose {
+    export class jose {
         JWE: JWE;
         JWK: JWK;
         JWS: JWS;
@@ -230,10 +230,7 @@ declare module 'node-jose' {
             json(input: object): object;
         };
         util: util;
-
-        KeyStore: KeyStore;
-        RawKey: RawKey;
     }
 
-    export = jose;
+    export default jose;
 }

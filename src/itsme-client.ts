@@ -1,5 +1,5 @@
 import Axios, { AxiosInstance } from 'axios';
-import * as jose from 'node-jose';
+import { JWK, JWS } from 'node-jose';
 import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
@@ -75,14 +75,14 @@ export class ItsmeClient {
     ) {
         if (supportedMethods.includes('private_key_jwt')) {
             const key = this.rp.keyStore.all().find(k => {
-                return signingAlgorithms.some(a => k.supports(a, jose.JWK.MODE_SIGN));
+                return signingAlgorithms.some(a => k.supports(a, JWK.MODE_SIGN));
             });
 
             if (key == null) {
                 throw Error('No keys found that match the supported algorithms');
             }
 
-            return await jose.JWS.createSign(
+            return await JWS.createSign(
                 {
                     fields: {
                         alg: key.alg,

@@ -1,10 +1,13 @@
+import * as assert from 'assert';
 import Axios, { AxiosInstance } from 'axios';
+import * as base64url from 'base64url';
 import { JWK, JWS } from 'node-jose';
 import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
 import { IdentityProvider } from './identity-provider';
 import { ItsmeRdpConfiguration } from './interfaces/itsme-configuration.interface';
+import { Header, IdToken, TokenResponse } from './interfaces/token.interface';
 
 export class ItsmeClient {
 
@@ -14,6 +17,7 @@ export class ItsmeClient {
     constructor(
         private idp: IdentityProvider,
         private rp: ItsmeRdpConfiguration,
+        private clockTolerance = 0,
     ) {
         this.http = Axios.create();
         this.http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -70,6 +74,71 @@ export class ItsmeClient {
         );
 
         return tokenResponse.data;
+    }
+
+    /**
+     * Verifies a token and extracts its contents.
+     * @param token The token to verify.
+     */
+    async verifyIdToken(token: string): Promise<IdToken> {
+        return await this.createVerify(
+            token,
+            this.idp.configuration.id_token_signing_alg_values_supported,
+        );
+    }
+
+    /**
+     * Returns the token payload if the token is valid. Errors if it is not.
+     * @param token The token to verify.
+     * @param supportedSigningAlgorithms Supported signing algorithms for this
+     * IDP.
+     */
+    private async createVerify(
+        token: string,
+        supportedSigningAlgorithms: Array<string>,
+    ): Promise<IdToken> {
+        const timestamp = Date.now();
+        const parts = token.split('.');
+        const header: Header = JSON.parse(base64url.decode(parts[0]));
+        const payload: IdToken = JSON.parse(base64url.decode(parts[1]));
+
+        ['iss', 'sub', 'aud', 'exp', 'iat'].forEach(field => {
+            if (payload[field] === undefined) {
+                throw new Error(`Missing required JWT property ${field}`);
+            }
+        });
+
+        const alg = supportedSigningAlgorithms.find(a => a === header.alg);
+        if (alg === undefined) {
+            throw Error('No matching algorithm for verification found.');
+        }
+
+        assert.strictEqual(
+            payload.iss,
+            'itsme.be',
+            `Unexpected iss value '${payload.iss}' in token`,
+        );
+
+        if (payload.iat !== undefined) {
+            assert.strictEqual(typeof payload.iat, 'number', 'iat is not a number');
+            assert(payload.iat <= timestamp + this.clockTolerance, 'ID token issued in the future');
+        }
+
+        if (payload.nbf !== undefined) {
+            assert.strictEqual(typeof payload.nbf, 'number', 'nbf is not a number');
+            assert(payload.nbf <= timestamp + this.clockTolerance, 'ID token not active yet');
+        }
+
+        assert(timestamp - this.clockTolerance < payload.exp, 'ID token expired');
+
+        if (payload.aud !== undefined) {
+            assert(payload.aud.includes(this.rp.clientId), 'aud is missing the client_id');
+        }
+
+        const key = await this.idp.getKey(header);
+        await JWS.createVerify(key).verify(token);
+
+        return payload;
     }
 
     private async createSign(

@@ -1,5 +1,6 @@
-import Axios from 'axios';
+import Axios, { AxiosInstance } from 'axios';
 import * as jose from 'node-jose';
+import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
 import { IdentityProvider } from './identity-provider';
@@ -8,11 +9,27 @@ import { ItsmeRdpConfiguration } from './interfaces/itsme-configuration.interfac
 export class ItsmeClient {
 
     private format = 'compact';
+    private http: AxiosInstance;
 
     constructor(
         private idp: IdentityProvider,
         private rp: ItsmeRdpConfiguration,
     ) {
+        this.http = Axios.create();
+        this.http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+        this.http.interceptors.request.use(request => {
+            if (request.method === undefined || request.data == null) {
+                return request;
+            }
+
+            const headers = request.headers[request.method];
+
+            if (headers['Content-Type'] === 'application/x-www-form-urlencoded') {
+                request.data = qs.stringify(request.data);
+            }
+
+            return request;
+        });
     }
 
     /**

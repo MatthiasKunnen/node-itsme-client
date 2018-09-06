@@ -53,7 +53,7 @@ export class ItsmeClient {
             sub: this.rp.clientId,
             aud: this.idp.configuration.token_endpoint,
             jti: uuid(),
-            exp: (exp.getTime() / 1000).toFixed(),
+            exp: Math.ceil(exp.getTime() / 1000),
         };
 
         const signer = await this.createSign(

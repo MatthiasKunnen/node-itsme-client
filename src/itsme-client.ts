@@ -15,7 +15,7 @@ export class ItsmeClient {
     private http: AxiosInstance;
 
     constructor(
-        private idp: IdentityProvider,
+        public idp: IdentityProvider,
         private rp: ItsmeRdpConfiguration,
         private clockTolerance = 0,
     ) {

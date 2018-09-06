@@ -53,7 +53,7 @@ export class IdentityProvider {
 
     isKeyCached(kid: string): boolean {
         // Use get to hit cache
-        return this.cache.get(this.keyPrefix + kid) === true;
+        return <any>this.cache.get(this.keyPrefix + kid) === true;
     }
 
     private async refreshKeyStore() {

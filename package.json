@@ -20,7 +20,7 @@
         "compile_dist_esm2015": "tsc -p ./tsconfig/tsconfig.esm2015.json",
         "lint": "npm-run-all ts-lint",
         "precommit": "npm run lint",
-        "ts-lint": "tslint -p tsconfig/tsconfig.base.json"
+        "ts-lint": "tslint -p tsconfig.base.json"
     },
     "dependencies": {
         "axios": "^0.18.0",

@@ -7,6 +7,7 @@ import * as uuid from 'uuid/v4';
 
 import { IdentityProvider } from './identity-provider';
 import { ItsmeRdpConfiguration } from './interfaces/itsme-configuration.interface';
+import { JwkSet } from './interfaces/jwk-set.interface';
 import { Header, IdToken, TokenResponse } from './interfaces/token.interface';
 
 export class ItsmeClient {
@@ -74,6 +75,14 @@ export class ItsmeClient {
         );
 
         return tokenResponse.data;
+    }
+
+    /**
+     * Get the public part of your JWK Set. This can be used to expose your
+     * JWK Set on a public URI.
+     */
+    getPublicJwkSet(): JwkSet {
+        return this.rp.keyStore.toJSON();
     }
 
     /**

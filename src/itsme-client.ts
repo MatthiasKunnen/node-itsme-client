@@ -6,6 +6,7 @@ import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
 import { IdentityProvider } from './identity-provider';
+import { Claims } from './interfaces/claims.interface';
 import { ItsmeRdpConfiguration } from './interfaces/itsme-configuration.interface';
 import { JwkSet } from './interfaces/jwk-set.interface';
 import { Header, IdToken, TokenResponse } from './interfaces/token.interface';
@@ -48,7 +49,7 @@ export class ItsmeClient {
     ): Promise<TokenResponse> {
         const exp = new Date();
         exp.setUTCMilliseconds(exp.getUTCMilliseconds() + 5 * 60 * 1000);
-        const clientAssertion = {
+        const clientAssertion: Claims = {
             iss: this.rp.clientId,
             sub: this.rp.clientId,
             aud: this.idp.configuration.token_endpoint,

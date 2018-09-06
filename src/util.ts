@@ -1,5 +1,5 @@
 import { computePrimes } from 'jwk-rsa-compute-primes';
-import * as jose from 'node-jose';
+import { JWK, KeyStore } from 'node-jose';
 
 import { JwkSet } from './interfaces/jwk-set.interface';
 
@@ -7,7 +7,7 @@ import { JwkSet } from './interfaces/jwk-set.interface';
  * Create a keystore. This method will compute p, q, dp, dq, and qi if these
  * parameters are missing.
  */
-export async function createKeyStore(jwkSet: JwkSet): Promise<jose.KeyStore> {
+export async function createKeyStore(jwkSet: JwkSet): Promise<KeyStore> {
     jwkSet.keys = jwkSet.keys.map(k => {
         if (k.kty.toUpperCase() === 'RSA' && k.d != null) { // Private RSA key, recompute primes
             k = computePrimes(<any>k);
@@ -16,5 +16,5 @@ export async function createKeyStore(jwkSet: JwkSet): Promise<jose.KeyStore> {
         return k;
     });
 
-    return jose.JWK.asKeyStore(jwkSet);
+    return JWK.asKeyStore(jwkSet);
 }

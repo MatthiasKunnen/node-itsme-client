@@ -9,3 +9,7 @@ export { IdentityProvider } from './identity-provider';
 export {
     createKeyStore,
 } from './util';
+export {
+    IdToken,
+    TokenResponse,
+} from './interfaces/token.interface';

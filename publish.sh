@@ -53,7 +53,7 @@ select version_type in "patch" "minor" "major"; do
     rm -Rf dist
     echo "Building"
     npm run build || exit "$?"
-    cp ./package.json ./.npmignore ./README.md ./dist || exit "$?"
+    cp ./package.json ./.npmignore ./README.md ./@types ./dist || exit "$?"
     cd dist || exit "$?"
 
     read -p "Ready to publish?; [Enter] to continue";

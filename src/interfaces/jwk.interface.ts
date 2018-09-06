@@ -39,7 +39,7 @@ export interface Jwk {
      * RSA public modulus n.
      * See {@link https://www.gnupg.org/documentation/manuals/gcrypt-devel/RSA-key-parameters.html}
      */
-    n: string;
+    n?: string;
 
     /**
      * The "use" (public key use) parameter identifies the intended use of

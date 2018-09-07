@@ -164,7 +164,9 @@ export class ItsmeClient {
             assert(payload.nbf <= timestamp + this.clockTolerance, 'JWT not active yet');
         }
 
-        assert(timestamp - this.clockTolerance < payload.exp, 'JWT expired');
+        if (payload.exp !== undefined) {
+            assert(timestamp - this.clockTolerance < payload.exp, 'JWT expired');
+        }
 
         if (payload.aud !== undefined) {
             const aud: Array<string> = Array.isArray(payload.aud) ? payload.aud : [payload.aud];

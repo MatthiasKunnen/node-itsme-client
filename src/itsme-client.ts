@@ -107,7 +107,7 @@ export class ItsmeClient {
         token: string,
         supportedSigningAlgorithms: Array<string>,
     ): Promise<IdToken> {
-        const timestamp = Date.now();
+        const timestamp = Math.floor(Date.now() / 1000);
         const parts = token.split('.');
         const header: Header = JSON.parse(base64url.decode(parts[0]));
         const payload: IdToken = JSON.parse(base64url.decode(parts[1]));

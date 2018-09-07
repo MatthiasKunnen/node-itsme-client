@@ -1,3 +1,6 @@
+[![npm version](https://img.shields.io/npm/v/itsme-client.svg?style=for-the-badge)
+](https://www.npmjs.com/package/itsme-client)
+
 # Itsme® client
 This library's purpose it to make your server's communication with itsme®
 more pleasant.

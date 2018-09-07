@@ -53,4 +53,6 @@ export interface UserInfoClaims {
     locale?: 'de' | 'en' | 'fr' | 'nl';
 
     family_name?: string;
+
+    [k: string]: any; // Claims not in this list should be accessible too
 }

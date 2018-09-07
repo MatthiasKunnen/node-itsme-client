@@ -91,24 +91,24 @@ export class ItsmeClient {
      * @param token The token to verify.
      */
     async verifyIdToken(token: string): Promise<IdToken> {
-        return await this.createVerify(
+        return await this.verify(
             token,
             this.idp.configuration.id_token_signing_alg_values_supported,
         );
     }
 
     /**
-     * Returns the token payload if the token is valid. Errors if it is not.
-     * @param token The token to verify.
+     * Returns the JWT payload if the JWT is valid. Errors if it is not.
+     * @param encodedJwt The encoded JWT to verify.
      * @param supportedSigningAlgorithms Supported signing algorithms for this
      * IDP.
      */
-    private async createVerify(
-        token: string,
+    private async verify(
+        encodedJwt: string,
         supportedSigningAlgorithms: Array<string>,
     ): Promise<IdToken> {
         const timestamp = Math.floor(Date.now() / 1000);
-        const parts = token.split('.');
+        const parts = encodedJwt.split('.');
         const header: Header = JSON.parse(base64url.decode(parts[0]));
         const payload: IdToken = JSON.parse(base64url.decode(parts[1]));
 
@@ -131,15 +131,15 @@ export class ItsmeClient {
 
         if (payload.iat !== undefined) {
             assert.strictEqual(typeof payload.iat, 'number', 'iat is not a number');
-            assert(payload.iat <= timestamp + this.clockTolerance, 'ID token issued in the future');
+            assert(payload.iat <= timestamp + this.clockTolerance, 'JWT issued in the future');
         }
 
         if (payload.nbf !== undefined) {
             assert.strictEqual(typeof payload.nbf, 'number', 'nbf is not a number');
-            assert(payload.nbf <= timestamp + this.clockTolerance, 'ID token not active yet');
+            assert(payload.nbf <= timestamp + this.clockTolerance, 'JWT not active yet');
         }
 
-        assert(timestamp - this.clockTolerance < payload.exp, 'ID token expired');
+        assert(timestamp - this.clockTolerance < payload.exp, 'JWT expired');
 
         if (payload.aud !== undefined) {
             const aud: Array<string> = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
@@ -147,7 +147,7 @@ export class ItsmeClient {
         }
 
         const key = await this.idp.getKey(header);
-        await JWS.createVerify(key).verify(token);
+        await JWS.createVerify(key).verify(encodedJwt);
 
         return payload;
     }

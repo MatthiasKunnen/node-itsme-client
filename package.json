@@ -1,6 +1,6 @@
 {
     "name": "itsme-client",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "A library to process itsme responses and consume itsme endpoints.",
     "es2015": "index.js",
     "main": "cjs/index.js",

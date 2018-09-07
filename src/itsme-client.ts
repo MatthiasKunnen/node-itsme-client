@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import Axios, { AxiosInstance } from 'axios';
 import * as base64url from 'base64url';
-import { JWK, JWS } from 'node-jose';
+import { JWE, JWK, JWS } from 'node-jose';
 import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
@@ -84,6 +84,27 @@ export class ItsmeClient {
      */
     getPublicJwkSet(): JwkSet {
         return this.rp.keyStore.toJSON();
+    }
+
+    /**
+     * Decrypts and verifies an ID Token.
+     * @param token
+     */
+    async decryptAndVerifyIdToken(token: string): Promise<IdToken> {
+        const decrypted = await this.decryptIdToken(token);
+
+        return await this.verifyIdToken(decrypted);
+    }
+
+    /**
+     * Decrypts the token and returns the decrypted result.
+     * @param token The token to decrypt.
+     */
+    async decryptIdToken(token: string): Promise<string> {
+        return this.decrypt(
+            token,
+            this.idp.configuration.id_token_encryption_alg_values_supported,
+        );
     }
 
     /**
@@ -182,5 +203,33 @@ export class ItsmeClient {
         }
 
         throw new Error('No supported methods found.');
+    }
+
+    /**
+     * Decrypts the JWT and returns the decrypted result.
+     * @param encodedJwt The encoded JWT to decrypt.
+     * @param supportedAlgorithms An array of supported encryption algorithms.
+     */
+    private async decrypt(
+        encodedJwt: string,
+        supportedAlgorithms: Array<string>,
+    ): Promise<string> {
+        const parts = encodedJwt.split('.');
+        const header: Header = JSON.parse(base64url.decode(parts[0]));
+        const alg = supportedAlgorithms.find(a => a === header.alg);
+
+        if (alg === undefined) {
+            throw Error('No matching algorithm for verification found.');
+        }
+
+        const key = this.rp.keyStore.get({alg});
+
+        if (key == null) {
+            throw Error(`No key supporting ${alg} found`);
+        }
+
+        const decrypted = await JWE.createDecrypt(key).decrypt(encodedJwt);
+
+        return decrypted.plaintext.toString('utf8');
     }
 }

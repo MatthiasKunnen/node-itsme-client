@@ -115,6 +115,7 @@ export class ItsmeClient {
         return await this.verify(
             token,
             this.idp.configuration.id_token_signing_alg_values_supported,
+            ['iss', 'sub', 'aud', 'exp', 'iat'],
         );
     }
 
@@ -123,17 +124,20 @@ export class ItsmeClient {
      * @param encodedJwt The encoded JWT to verify.
      * @param supportedSigningAlgorithms Supported signing algorithms for this
      * IDP.
+     * @param requiredFields An array of fields that are required for the JWT
+     * payload.
      */
     private async verify(
         encodedJwt: string,
         supportedSigningAlgorithms: Array<string>,
+        requiredFields: Array<string>,
     ): Promise<IdToken> {
         const timestamp = Math.floor(Date.now() / 1000);
         const parts = encodedJwt.split('.');
         const header: Header = JSON.parse(base64url.decode(parts[0]));
         const payload: IdToken = JSON.parse(base64url.decode(parts[1]));
 
-        ['iss', 'sub', 'aud', 'exp', 'iat'].forEach(field => {
+        requiredFields.forEach(field => {
             if (payload[field] === undefined) {
                 throw new Error(`Missing required JWT property ${field}`);
             }

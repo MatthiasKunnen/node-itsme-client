@@ -125,7 +125,7 @@ export class ItsmeClient {
 
         assert.strictEqual(
             payload.iss,
-            'itsme.be',
+            this.idp.configuration.issuer,
             `Unexpected iss value '${payload.iss}' in token`,
         );
 

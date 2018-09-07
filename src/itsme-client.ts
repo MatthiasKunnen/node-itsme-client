@@ -142,7 +142,8 @@ export class ItsmeClient {
         assert(timestamp - this.clockTolerance < payload.exp, 'ID token expired');
 
         if (payload.aud !== undefined) {
-            assert(payload.aud.includes(this.rp.clientId), 'aud is missing the client_id');
+            const aud: Array<string> = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+            assert(aud.includes(this.rp.clientId), 'aud is missing the client ID');
         }
 
         const key = await this.idp.getKey(header);

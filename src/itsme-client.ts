@@ -9,7 +9,8 @@ import { IdentityProvider } from './identity-provider';
 import { Claims } from './interfaces/claims.interface';
 import { ItsmeRdpConfiguration } from './interfaces/itsme-configuration.interface';
 import { JwkSet } from './interfaces/jwk-set.interface';
-import { Header, IdToken, TokenResponse } from './interfaces/token.interface';
+import { JwtPayload } from './interfaces/jwt.interface';
+import { Header, TokenResponse } from './interfaces/token.interface';
 
 export class ItsmeClient {
 
@@ -90,7 +91,7 @@ export class ItsmeClient {
      * Decrypts and verifies an ID Token.
      * @param token
      */
-    async decryptAndVerifyIdToken(token: string): Promise<IdToken> {
+    async decryptAndVerifyIdToken(token: string): Promise<JwtPayload> {
         const decrypted = await this.decryptIdToken(token);
 
         return await this.verifyIdToken(decrypted);
@@ -111,7 +112,7 @@ export class ItsmeClient {
      * Verifies a token and extracts its contents.
      * @param token The token to verify.
      */
-    async verifyIdToken(token: string): Promise<IdToken> {
+    async verifyIdToken(token: string): Promise<JwtPayload> {
         return await this.verify(
             token,
             this.idp.configuration.id_token_signing_alg_values_supported,
@@ -131,11 +132,11 @@ export class ItsmeClient {
         encodedJwt: string,
         supportedSigningAlgorithms: Array<string>,
         requiredFields: Array<string>,
-    ): Promise<IdToken> {
+    ): Promise<JwtPayload> {
         const timestamp = Math.floor(Date.now() / 1000);
         const parts = encodedJwt.split('.');
         const header: Header = JSON.parse(base64url.decode(parts[0]));
-        const payload: IdToken = JSON.parse(base64url.decode(parts[1]));
+        const payload: JwtPayload = JSON.parse(base64url.decode(parts[1]));
 
         requiredFields.forEach(field => {
             if (payload[field] === undefined) {

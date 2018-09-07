@@ -40,7 +40,7 @@ declare module 'node-jose' {
         key: JWKKey;
     }
 
-    export interface JWEDecryptResult {
+    export interface JWEDecryptResult extends BaseResult {
         /**
          * an array of the member names from the "protected" member
          */

@@ -13,3 +13,4 @@ export {
     TokenResponse,
 } from './interfaces/token.interface';
 export { JwtPayload } from './interfaces/jwt.interface';
+export { UserInfoClaims } from './interfaces/claims.interface';

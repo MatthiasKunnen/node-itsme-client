@@ -6,7 +6,7 @@ import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
 import { IdentityProvider } from './identity-provider';
-import { Claims } from './interfaces/claims.interface';
+import { Claims, UserInfoClaims } from './interfaces/claims.interface';
 import { ItsmeRdpConfiguration } from './interfaces/itsme-configuration.interface';
 import { JwkSet } from './interfaces/jwk-set.interface';
 import { JwtPayload } from './interfaces/jwt.interface';
@@ -118,6 +118,74 @@ export class ItsmeClient {
             this.idp.configuration.id_token_signing_alg_values_supported,
             ['iss', 'sub', 'aud', 'exp', 'iat'],
         );
+    }
+
+    /**
+     * Combines {@link userInfo}, {@link decryptUserInfo}, and
+     * {@link verifyUserInfo}. Takes care of fetching, decrypting, verifying and
+     * extracting the claims.
+     * @param accessToken The Access Token to leverage for retrieving the user
+     * info.
+     */
+    async userInfoComplete(accessToken: string) {
+        const userInfoJwt = await this.userInfo(accessToken);
+        const decryptedUserInfo = await this.decryptUserInfo(userInfoJwt);
+        return await this.verifyUserInfo(decryptedUserInfo);
+    }
+
+    /**
+     * Get user info using an access token. Returns an encrypted JWT.
+     * Use {@link decryptUserInfo} and {@link verifyUserInfo} to extract the
+     * claims.
+     * {@link userInfoComplete} Combines this method, {@link decryptUserInfo},
+     * and {@link verifyUserInfo}. You can use it to skip the intermediary
+     * steps.
+     * @param accessToken The Access Token to leverage for retrieving the user
+     * info.
+     */
+    async userInfo(accessToken: string): Promise<string> {
+        const response = await Axios.get<string>(this.idp.configuration.userinfo_endpoint, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+
+        return response.data;
+    }
+
+    /**
+     * Decrypts the user info response and returns an encoded JWT.
+     * @param encryptedJwt The encrypted JWT to decrypt.
+     */
+    async decryptUserInfo(encryptedJwt: string): Promise<string> {
+        return this.decrypt(
+            encryptedJwt,
+            this.idp.configuration.userinfo_encryption_alg_values_supported,
+        );
+    }
+
+    /**
+     * Verifies the encoded but decrypted user info JWT.
+     * @param encodedJWT The encodedJWT to verify.
+     */
+    async verifyUserInfo(encodedJWT: string): Promise<UserInfoClaims> {
+        const userInfo = await this.verify(
+            encodedJWT,
+            this.idp.configuration.userinfo_signing_alg_values_supported,
+            ['iss', 'sub', 'aud'],
+        );
+
+        // This parses the address since itsme returns the object as a plain string
+        if (userInfo.address !== undefined && typeof userInfo.address === 'string') {
+            try {
+                userInfo.address = JSON.parse(userInfo.address);
+            } catch (e) {
+                // If the address is a string yet not valid JSON, let the
+                // implementer deal with it
+            }
+        }
+
+        return userInfo;
     }
 
     /**

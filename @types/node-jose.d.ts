@@ -18,7 +18,7 @@ declare module 'node-jose' {
     export interface JWEEncryptor {
         update(input: any): this;
 
-        final(): Promise<string>;
+        final(): Promise<string | Object>;
     }
 
     export interface JWEDecryptor {
@@ -58,6 +58,7 @@ declare module 'node-jose' {
             zip?: boolean;
 
         }, key: JWKKey): JWEEncryptor;
+        createEncrypt(opts: CreateSignEncryptOpts, signs: CreateSignEncryptSigns): JWEEncryptor;
         createDecrypt(key: JWKKey): JWEDecryptor;
     }
 
@@ -187,11 +188,92 @@ declare module 'node-jose' {
         signature: Buffer;
     }
 
+    export interface JWSSigner {
+
+        /**
+         * Updates the signing content for this signature content. The content
+         * is appended to the end of any other content already applied.
+         *
+         * If {data} is a Buffer, {encoding} is ignored. Otherwise, {data} is
+         * converted to a Buffer internally to {encoding}.
+         *
+         * @param {Buffer|String} data The data to sign.
+         * @param {String} [encoding="binary"] The encoding of {data}.
+         * @returns This signature generator.
+         * @throws {Error} If a signature has already been generated.
+         */
+        update(data: string | Buffer, encoding?: string): JWSSigner;
+
+        /**
+         * Finishes the signature operation.
+         *
+         * The returned Promise, when fulfilled, is the JSON Web Signature (JWS)
+         * object.
+         *
+         * @param {Buffer|String} [data] The final content to apply.
+         * @param {String} [encoding="binary"] The encoding of the final content
+         *        (if any).
+         * @returns {Promise} The promise for the signatures
+         * @throws {Error} If a signature has already been generated.
+         */
+        final(data?: string | Buffer, encoding?: string): Promise<any>
+    }
+
     export interface JWSVerifier {
         verify(input: string): Promise<VerificationResult>;
     }
 
+    export interface CreateSignEncryptOpts {
+        /**
+         * Use compact serialization?
+         */
+        compact?: boolean,
+        format?: string | 'compact' | 'flattened' | 'general',
+
+        /**
+         * Additional header fields.
+         */
+        fields?: {[k: string]: any};
+    }
+
+    export interface CreateSignEncryptSigns {
+        /**
+         * Per-signatory header fields.
+         */
+        header?: Object,
+
+        /**
+         * The key used to sign the content.
+         */
+        key: JWKKey;
+
+        /**
+         * List of fields to integrity protect ("*" to protect all fields).
+         */
+        protect?: string | Array<string>,
+
+        /**
+         * Reference field to identify the key.
+         */
+        reference?: any,
+    }
+
     export interface JWS {
+
+        /**
+         * Creates a new JWS Signer with the given options and signatories.
+         *
+         * @param [opts] The signing options
+         * @param signs Signatories, either as an array of JWK.Key instances; or
+         * an array of objects.
+         * @returns {JWSSigner} The signature generator.
+         * @throws {Error} If Compact serialization is requested but there are
+         * multiple signatories.
+         */
+        createSign(opts: CreateSignEncryptOpts, signs: CreateSignEncryptSigns): JWSSigner;
+        createSign(key: JWKKey | JWKKey[]): JWSSigner;
+        createSign(opts: CreateSignEncryptOpts, key: JWKKey): JWSSigner;
+
         /**
          * Using a keystore.
          */

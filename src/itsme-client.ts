@@ -129,13 +129,13 @@ export class ItsmeClient {
      * info.
      */
     async userInfoComplete(accessToken: string) {
-        const userInfoJwt = await this.userInfo(accessToken);
-        const decryptedUserInfo = await this.decryptUserInfo(userInfoJwt);
-        return await this.verifyUserInfo(decryptedUserInfo);
+        const userInfoJwe = await this.userInfo(accessToken);
+        const userInfoJws = await this.decryptUserInfo(userInfoJwe);
+        return await this.verifyUserInfo(userInfoJws);
     }
 
     /**
-     * Get user info using an access token. Returns an encrypted JWT.
+     * Get user info using an access token. Returns an encoded JWE.
      * Use {@link decryptUserInfo} and {@link verifyUserInfo} to extract the
      * claims.
      * {@link userInfoComplete} Combines this method, {@link decryptUserInfo},
@@ -155,23 +155,24 @@ export class ItsmeClient {
     }
 
     /**
-     * Decrypts the user info response and returns an encoded JWT.
-     * @param encryptedJwt The encrypted JWT to decrypt.
+     * Decrypts the user info response and returns an encoded JWS.
+     * @param jwe The JWE to decrypt.
      */
-    async decryptUserInfo(encryptedJwt: string): Promise<string> {
+    async decryptUserInfo(jwe: string): Promise<string> {
         return this.decrypt(
-            encryptedJwt,
+            jwe,
             this.idp.configuration.userinfo_encryption_alg_values_supported,
         );
     }
 
     /**
-     * Verifies the encoded but decrypted user info JWT.
-     * @param encodedJWT The encodedJWT to verify.
+     * Verifies the encoded but decrypted user info JWS. Returns the claims of
+     * the user.
+     * @param jws The JWS to verify.
      */
-    async verifyUserInfo(encodedJWT: string): Promise<UserInfoClaims> {
+    async verifyUserInfo(jws: string): Promise<UserInfoClaims> {
         const userInfo = await this.verify(
-            encodedJWT,
+            jws,
             this.idp.configuration.userinfo_signing_alg_values_supported,
             ['iss', 'sub', 'aud'],
         );
@@ -190,20 +191,20 @@ export class ItsmeClient {
     }
 
     /**
-     * Returns the JWT payload if the JWT is valid. Errors if it is not.
-     * @param encodedJwt The encoded JWT to verify.
+     * Returns the JWS payload if the JWS is valid. Errors if it is not.
+     * @param jws The encoded JWS to verify.
      * @param supportedSigningAlgorithms Supported signing algorithms for this
      * IDP.
      * @param requiredFields An array of fields that are required for the JWT
      * payload.
      */
     private async verify(
-        encodedJwt: string,
+        jws: string,
         supportedSigningAlgorithms: Array<string>,
         requiredFields: Array<string>,
     ): Promise<JwtPayload> {
         const timestamp = Math.floor(Date.now() / 1000);
-        const parts = encodedJwt.split('.');
+        const parts = jws.split('.');
         const header: Header = JSON.parse(base64url.decode(parts[0]));
         const payload: JwtPayload = JSON.parse(base64url.decode(parts[1]));
 
@@ -226,16 +227,16 @@ export class ItsmeClient {
 
         if (payload.iat !== undefined) {
             assert.strictEqual(typeof payload.iat, 'number', 'iat is not a number');
-            assert(payload.iat <= timestamp + this.clockTolerance, 'JWT issued in the future');
+            assert(payload.iat <= timestamp + this.clockTolerance, 'JWS issued in the future');
         }
 
         if (payload.nbf !== undefined) {
             assert.strictEqual(typeof payload.nbf, 'number', 'nbf is not a number');
-            assert(payload.nbf <= timestamp + this.clockTolerance, 'JWT not active yet');
+            assert(payload.nbf <= timestamp + this.clockTolerance, 'JWS not active yet');
         }
 
         if (payload.exp !== undefined) {
-            assert(timestamp - this.clockTolerance < payload.exp, 'JWT expired');
+            assert(timestamp - this.clockTolerance < payload.exp, 'JWS expired');
         }
 
         if (payload.aud !== undefined) {
@@ -244,7 +245,7 @@ export class ItsmeClient {
         }
 
         const key = await this.idp.getKey(header);
-        await JWS.createVerify(key).verify(encodedJwt);
+        await JWS.createVerify(key).verify(jws);
 
         return payload;
     }
@@ -294,15 +295,15 @@ export class ItsmeClient {
     }
 
     /**
-     * Decrypts the JWT and returns the decrypted result.
-     * @param encodedJwt The encoded JWT to decrypt.
+     * Decrypts the JWE and returns the decrypted result.
+     * @param jwe The encoded JWE to decrypt.
      * @param supportedAlgorithms An array of supported encryption algorithms.
      */
     private async decrypt(
-        encodedJwt: string,
+        jwe: string,
         supportedAlgorithms: Array<string>,
     ): Promise<string> {
-        const parts = encodedJwt.split('.');
+        const parts = jwe.split('.');
         const header: Header = JSON.parse(base64url.decode(parts[0]));
         const alg = supportedAlgorithms.find(a => a === header.alg);
 
@@ -316,7 +317,7 @@ export class ItsmeClient {
             throw Error(`No key supporting ${alg} found`);
         }
 
-        const decrypted = await JWE.createDecrypt(key).decrypt(encodedJwt);
+        const decrypted = await JWE.createDecrypt(key).decrypt(jwe);
 
         return decrypted.plaintext.toString('utf8');
     }

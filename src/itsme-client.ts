@@ -58,7 +58,8 @@ export class ItsmeClient {
             exp: Math.ceil(exp.getTime() / 1000),
         };
 
-        const signer = await this.createSign(
+        const clientAssertionReady = await this.tokenAuth(
+            JSON.stringify(clientAssertion),
             this.idp.configuration.token_endpoint_auth_methods_supported,
             this.idp.configuration.token_endpoint_auth_signing_alg_values_supported,
         );
@@ -67,7 +68,7 @@ export class ItsmeClient {
             grant_type: 'authorization_code',
             code: authorizationCode,
             redirect_uri: redirectUri,
-            client_assertion: await signer.update(JSON.stringify(clientAssertion)).final(),
+            client_assertion: clientAssertionReady,
             client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
         };
 
@@ -248,36 +249,48 @@ export class ItsmeClient {
         return payload;
     }
 
-    private async createSign(
+    private async tokenAuth(
+        data: string,
         supportedMethods: Array<string>,
         signingAlgorithms: Array<string>,
-    ) {
+    ): Promise<string> {
         if (supportedMethods.includes('private_key_jwt')) {
-            const key = this.rp.keyStore.all().find(k => {
-                return signingAlgorithms.some(a => k.supports(a, JWK.MODE_SIGN));
-            });
-
-            if (key == null) {
-                throw Error('No keys found that match the supported algorithms');
-            }
-
-            return await JWS.createSign(
-                {
-                    fields: {
-                        alg: key.alg,
-                        typ: 'JWT',
-                    },
-                    format: this.format,
-                },
-                {
-                    key,
-                    reference: true,
-                },
-            );
-
+            return this.sign(data, signingAlgorithms);
         }
 
         throw new Error('No supported methods found.');
+    }
+
+    /**
+     * Signs a piece of data and returns the resulting encoded JWS.
+     * @param payload The payload to sign.
+     * @param signingAlgorithms The supported signing algorithms.
+     */
+    private async sign(
+        payload: string | Buffer,
+        signingAlgorithms: Array<string>,
+    ): Promise<string> {
+        const key = this.rp.keyStore.all().find(k => {
+            return signingAlgorithms.some(a => k.supports(a, JWK.MODE_SIGN));
+        });
+
+        if (key == null) {
+            throw Error('No keys found that match the supported algorithms');
+        }
+
+        return JWS.createSign(
+            {
+                fields: {
+                    alg: key.alg,
+                    typ: 'JWT',
+                },
+                format: this.format,
+            },
+            {
+                key,
+                reference: true,
+            },
+        ).final(payload);
     }
 
     /**

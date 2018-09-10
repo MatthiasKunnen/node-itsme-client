@@ -72,3 +72,6 @@ via URL or other means.
 ```TypeScript
 itsmeClient.getPublicJwkSet();
 ```
+
+# Responses
+RESPONSES.md contains examples of responses of certain methods.

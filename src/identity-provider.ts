@@ -1,9 +1,10 @@
 import Axios from 'axios';
 import * as LRU from 'lru-cache';
 import * as ms from 'ms';
-import { JWK, JWKKey, KeyStore, KeyStoreGetOptions } from 'node-jose';
+import { JWK, JWKKey, KeyStore } from 'node-jose';
 
 import { ItsmeDiscoveryConfiguration } from './interfaces/itsme-configuration.interface';
+import { getKey, KeyLookupOptions } from './util/key-lookup';
 
 export class IdentityProvider {
 
@@ -36,13 +37,13 @@ export class IdentityProvider {
         return new this(discoveryResponse.data);
     }
 
-    async getKey(keyLookup: KeyStoreGetOptions): Promise<JWKKey | undefined> {
+    async getKey(keyLookup: KeyLookupOptions): Promise<JWKKey | undefined> {
         // Init or key rollover could have occurred.
         if (this.keyStore === undefined || !this.isKeyCached(keyLookup.kid)) {
             await this.refreshKeyStore();
         }
 
-        const key = this.keyStore.get(keyLookup);
+        const key = getKey(this.keyStore, keyLookup);
 
         if (key != null) {
             this.cache.set(this.keyPrefix + keyLookup.kid, true);

@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import Axios, { AxiosInstance } from 'axios';
 import * as base64url from 'base64url';
-import { JWE, JWK, JWS } from 'node-jose';
+import { JWE, JWS } from 'node-jose';
 import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
@@ -11,6 +11,7 @@ import { ItsmeRdpConfiguration } from './interfaces/itsme-configuration.interfac
 import { JwkSet } from './interfaces/jwk-set.interface';
 import { JwtPayload } from './interfaces/jwt.interface';
 import { Header, TokenResponse } from './interfaces/token.interface';
+import { getKey } from './util/key-lookup';
 
 export class ItsmeClient {
 
@@ -271,8 +272,8 @@ export class ItsmeClient {
         payload: string | Buffer,
         signingAlgorithms: Array<string>,
     ): Promise<string> {
-        const key = this.rp.keyStore.all().find(k => {
-            return signingAlgorithms.some(a => k.supports(a, JWK.MODE_SIGN));
+        const key = getKey(this.rp.keyStore, {
+            alg: signingAlgorithms,
         });
 
         if (key == null) {

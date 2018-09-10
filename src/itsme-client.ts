@@ -7,7 +7,7 @@ import * as uuid from 'uuid/v4';
 
 import { IdentityProvider } from './identity-provider';
 import { Claims, UserInfoClaims } from './interfaces/claims.interface';
-import { ItsmeRdpConfiguration } from './interfaces/itsme-configuration.interface';
+import { ItsmeRpConfiguration } from './interfaces/itsme-configuration.interface';
 import { JwkSet } from './interfaces/jwk-set.interface';
 import { JwtPayload } from './interfaces/jwt.interface';
 import { Header, TokenResponse } from './interfaces/token.interface';
@@ -20,7 +20,7 @@ export class ItsmeClient {
 
     constructor(
         public idp: IdentityProvider,
-        private rp: ItsmeRdpConfiguration,
+        private rp: ItsmeRpConfiguration,
         private clockTolerance = 0,
     ) {
         this.http = Axios.create();

@@ -3,7 +3,7 @@ import { KeyStore } from 'node-jose';
 /**
  * The configuration of the relying party.
  */
-export interface ItsmeRdpConfiguration {
+export interface ItsmeRpConfiguration {
 
     /**
      * The client ID provided by itsme.

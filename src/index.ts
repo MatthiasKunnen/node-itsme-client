@@ -3,7 +3,7 @@ export { IdentityProvider } from './identity-provider';
 
 // ItsmeClient
 export {
-    ItsmeRdpConfiguration,
+    ItsmeRpConfiguration,
     ItsmeDiscoveryConfiguration,
 } from './interfaces/itsme-configuration.interface';
 export { ItsmeClient } from './itsme-client';

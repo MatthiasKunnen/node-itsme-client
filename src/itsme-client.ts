@@ -6,6 +6,7 @@ import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
 import { IdentityProvider } from './identity-provider';
+import { ApprovalInput, ApprovalRequest } from './interfaces/approval.interface';
 import { Claims, UserInfoClaims } from './interfaces/claims.interface';
 import {
     ItsmeRpConfiguration,
@@ -93,6 +94,72 @@ export class ItsmeClient {
     }
 
     /**
+     * Generate the required data to make an approval request.
+     * Requesting approval is a multi stage process. The process:
+     * 1. Generate the request object, a JWE of a JWS of the request. This
+     * includes the claims, sub, ...
+     * 2. Store the generated JWE on a public URI
+     * 3. Make the approval request using GET
+     */
+    async getApprovalRequest(input: ApprovalInput): Promise<ApprovalRequest> {
+        if (input.telephoneNumber == null && input.sub == null) {
+            throw Error('Expected one of "sub" or "telephone number" to be present');
+        }
+
+        const userInfo = {
+            ...input.approvalTemplate,
+        };
+
+        if (input.sub !== undefined) {
+            userInfo.sub = {
+                value: input.sub,
+            };
+        } else if (input.telephoneNumber !== undefined) {
+            userInfo.phone_number = {
+                value: input.telephoneNumber,
+            };
+        }
+
+        const redirectUri = this.getRedirectUri(input.serviceCode);
+
+        if (redirectUri === undefined) {
+            throw Error(`Cannot find service code ${input.serviceCode}`);
+        }
+
+        const base = {
+            response_type: 'code',
+            client_id: this.rp.clientId,
+            scope: `openid service:${input.serviceCode}`,
+            nonce: uuid(),
+            state: uuid(),
+            redirect_uri: redirectUri,
+            request_uri: this.rp.requestUri + input.requestUriToken,
+        };
+
+        const request = {
+            ...base,
+            // For some reason not represent in base
+            acr_values: 'tag:sixdots.be,2016-06:acr_advanced',
+            aud: this.idp.configuration.issuer,
+            iss: this.rp.clientId,
+            claims: { // Why are claims only in request
+                userinfo: userInfo,
+            },
+        };
+
+        console.log('plain approval request', JSON.stringify({
+            ...base,
+            request,
+        }, undefined, 2));
+
+        return {
+            endpoint: this.idp.configuration.authorization_endpoint,
+            params: base,
+            request: await this.requestObject(request),
+        };
+    }
+
+    /**
      * Get the public part of your JWK Set. This can be used to expose your
      * JWK Set on a public URI.
      */
@@ -138,6 +205,25 @@ export class ItsmeClient {
             token,
             this.idp.configuration.id_token_signing_alg_values_supported,
             ['iss', 'sub', 'aud', 'exp', 'iat'],
+        );
+    }
+
+    async requestObject(request: {[k: string]: any}) {
+        const signedRequest = await this.sign(
+            JSON.stringify(request),
+            this.idp.configuration.request_object_signing_alg_values_supported,
+        );
+
+        const encAlgs = this.idp.configuration.request_object_encryption_alg_values_supported;
+
+        if (encAlgs === undefined) {
+            return signedRequest;
+        }
+
+        return this.encrypt(
+            signedRequest,
+            encAlgs,
+            this.idp.configuration.request_object_encryption_enc_values_supported,
         );
     }
 
@@ -340,5 +426,52 @@ export class ItsmeClient {
         const decrypted = await JWE.createDecrypt(key).decrypt(jwe);
 
         return decrypted.plaintext.toString('utf8');
+    }
+
+    /**
+     * Creates a JWE from a payload using a key selected using the
+     * supportedAlgorithms list.
+     * @param payload
+     * @param supportedAlgorithms Array of supports algorithms.
+     * See {@link https://tools.ietf.org/html/rfc7516#section-4.1.1}
+     * @param supportedEncAlgorithms Supports enc values.
+     * WARNING: currently, it is assumed that the keys supporting an alg also
+     * support the enc alg. Truthfully, I do not know whether a key matching one
+     * of the supportedAlgorithms can subsequently not match an encryption
+     * algorithm.
+     * See {@link https://tools.ietf.org/html/rfc7516#section-4.1.2}
+     */
+    private async encrypt(
+        payload: string | Buffer,
+        supportedAlgorithms: Array<string>,
+        supportedEncAlgorithms: Array<string>,
+    ): Promise<string> {
+        if (supportedEncAlgorithms.length < 1) {
+            throw Error('At lease one supported Encryption Algorithm required.');
+        }
+
+        const key = await this.idp.getKey({
+            alg: supportedAlgorithms,
+            use: 'enc',
+        });
+
+        if (key == null) {
+            throw Error('No keys found that match the supported algorithms');
+        }
+
+        return JWE.createEncrypt(
+            {
+                fields: {
+                    alg: key.alg,
+                    cty: 'JWT',
+                    enc: supportedEncAlgorithms[0],
+                },
+                format: this.format,
+            },
+            {
+                key,
+                reference: key.kty !== 'oct',
+            },
+        ).final(payload);
     }
 }

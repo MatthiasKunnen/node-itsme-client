@@ -23,3 +23,14 @@ export {
     TokenResponse,
 } from './interfaces/token.interface';
 export { UserInfoClaims } from './interfaces/claims.interface';
+
+// Approval
+export { ApprovalInput, ApprovalTemplate } from './interfaces/approval.interface';
+export {
+    FreeTextApprovalTemplate,
+    generateFreeTextApprovalTemplate,
+} from './approval-templates/free-text.approval-template';
+export {
+    PaymentApprovalTemplate,
+    generatePaymentApprovalTemplate,
+} from './approval-templates/payment.approval-template';

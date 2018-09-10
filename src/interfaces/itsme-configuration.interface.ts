@@ -19,6 +19,13 @@ export interface ItsmeRpConfigurationInput {
     keyStore: KeyStore;
 
     /**
+     * The base URI for usage of request_uri. Will be appended with a string you
+     * provide during requests. See `ApprovalInput.requestUriToken` for an
+     * example.
+     */
+    requestUri?: string;
+
+    /**
      * Used to match service codes to redirect URIs.
      * Keys are the service codes, values are the redirect URIs.
      */

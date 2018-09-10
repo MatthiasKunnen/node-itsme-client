@@ -62,10 +62,34 @@ function find(
 }
 
 /**
+ * Custom key matcher to deal with missing optional fields such as alg.
+ */
+function keyMatcher(key: JWKKey, lookup: PlainKeyLookupOptions): boolean {
+    const isFieldSet: (field: string) => boolean = (field) => {
+        const value = key[field];
+        return value !== '' || value != null;
+    };
+
+    // When searching on kid, only return exact matches.
+    if (lookup.kid != null && lookup.kid !== key.kid) {
+        return false;
+    }
+
+    if (lookup.alg != null && isFieldSet('alg')) {
+        if (!key.supports(lookup.alg)) {
+            return false;
+        }
+    }
+
+    return Object.keys(lookup).every(p => isFieldSet(p) || key[p] === lookup[p]);
+}
+
+/**
  * Custom getKey option to make searching for matching properties easier.
  * @param keyStore The key store to search in
  * @param keyLookup The lookup options.
  */
 export function getKey(keyStore: KeyStore, keyLookup: KeyLookupOptions): JWKKey | null {
-    return find(keyLookup, lookup => keyStore.get(lookup));
+    const keys: Array<JWKKey> = keyStore.all();
+    return find(keyLookup, lookup => keys.find(k => keyMatcher(k, lookup)));
 }

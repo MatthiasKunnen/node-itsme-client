@@ -1,9 +1,9 @@
 import { KeyStore } from 'node-jose';
 
 /**
- * The configuration of the relying party.
+ * The input of the configuration of the relying party.
  */
-export interface ItsmeRpConfiguration {
+export interface ItsmeRpConfigurationInput {
 
     /**
      * The client ID provided by itsme.
@@ -17,6 +17,24 @@ export interface ItsmeRpConfiguration {
      * default JWK set.
      */
     keyStore: KeyStore;
+
+    /**
+     * Used to match service codes to redirect URIs.
+     * Keys are the service codes, values are the redirect URIs.
+     */
+    serviceCodes?: {[k: string]: string};
+}
+
+/**
+ * The configuration of the relying party.
+ */
+export interface ItsmeRpConfiguration extends ItsmeRpConfigurationInput {
+
+    /**
+     * Used to match service codes to redirect URIs.
+     * Keys are the service codes, values are the redirect URIs.
+     */
+    serviceCodes: {[k: string]: string};
 }
 
 export interface ItsmeDiscoveryConfiguration {

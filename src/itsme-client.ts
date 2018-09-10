@@ -7,7 +7,10 @@ import * as uuid from 'uuid/v4';
 
 import { IdentityProvider } from './identity-provider';
 import { Claims, UserInfoClaims } from './interfaces/claims.interface';
-import { ItsmeRpConfiguration } from './interfaces/itsme-configuration.interface';
+import {
+    ItsmeRpConfiguration,
+    ItsmeRpConfigurationInput,
+} from './interfaces/itsme-configuration.interface';
 import { JwkSet } from './interfaces/jwk-set.interface';
 import { JwtPayload } from './interfaces/jwt.interface';
 import { Header, TokenResponse } from './interfaces/token.interface';
@@ -17,12 +20,19 @@ export class ItsmeClient {
 
     private format = 'compact';
     private http: AxiosInstance;
+    private rp: ItsmeRpConfiguration;
 
     constructor(
         public idp: IdentityProvider,
-        private rp: ItsmeRpConfiguration,
+        rp: ItsmeRpConfigurationInput,
         private clockTolerance = 0,
     ) {
+        if (rp.serviceCodes === undefined) {
+            rp.serviceCodes = {};
+        }
+
+        this.rp = <ItsmeRpConfiguration>rp; // Cast to deal with input type mismatch
+
         this.http = Axios.create();
         this.http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
         this.http.interceptors.request.use(request => {
@@ -44,6 +54,7 @@ export class ItsmeClient {
      * Exchange an Authorization code for an Access token and an ID token.
      * @param authorizationCode The Authorization code.
      * @param redirectUri The redirection URI used in the Authorization request.
+     * Use {@link getRedirectUri} to get a redirect URI via service code.
      */
     async exchangeAuthorizationCode(
         authorizationCode: string,
@@ -87,6 +98,14 @@ export class ItsmeClient {
      */
     getPublicJwkSet(): JwkSet {
         return this.rp.keyStore.toJSON();
+    }
+
+    /**
+     * Get a redirect URI based on a service code lookup.
+     * @param serviceCode
+     */
+    getRedirectUri(serviceCode: string): string | undefined {
+        return this.rp.serviceCodes[serviceCode];
     }
 
     /**

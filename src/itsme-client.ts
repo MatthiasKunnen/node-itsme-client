@@ -20,7 +20,7 @@ import {getKey} from './util/key-lookup';
 
 export class ItsmeClient {
 
-    private format = 'compact';
+    private format = 'compact' as const;
     private http: AxiosInstance;
     private rp: ItsmeRpConfiguration;
 
@@ -383,23 +383,20 @@ export class ItsmeClient {
             alg: signingAlgorithms,
         });
 
-        if (key == null) {
+        if (key === undefined) {
             throw Error('No keys found that match the supported algorithms');
         }
 
         return JWS.createSign(
             {
+                alg: key.alg,
                 fields: {
-                    alg: key.alg,
                     typ: 'JWT',
                 },
-                format: this.format,
+                format: 'compact',
             },
-            {
-                key,
-                reference: true,
-            },
-        ).final(payload);
+            key,
+        ).update(payload).final();
     }
 
     /**

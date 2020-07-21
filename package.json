@@ -5,7 +5,7 @@
     "es2015": "lib/es2015/index.js",
     "main": "lib/cjs/index.js",
     "module": "lib/esm5/index.js",
-    "types": "index.d.ts",
+    "types": "lib/es2015/index.d.ts",
     "scripts": {
         "build": "npm-run-all clean:lib build:configurations",
         "build:configurations": "tsc --build ./tsconfig/tsconfig.*.json",
@@ -13,12 +13,13 @@
         "lint": "eslint \"src/**/*.ts\""
     },
     "dependencies": {
+        "@types/node-jose": "^1.1.4",
         "axios": "^0.18.0",
         "base64url": "^3.0.0",
         "jwk-rsa-compute-primes": "^1.0.0",
         "lru-cache": "^4.1.3",
         "ms": "^2.1.1",
-        "node-jose": "^1.0.0",
+        "node-jose": "^1.1.4",
         "qs": "^6.5.2",
         "uuid": "^3.3.2"
     },
@@ -39,7 +40,6 @@
         "url": "git+https://github.com/MatthiasKunnen/node-itsme-client.git"
     },
     "files": [
-        "@types",
         "lib"
     ],
     "keywords": [

@@ -4,7 +4,7 @@ import * as ms from 'ms';
 import {JWK, JWKKey, KeyStore} from 'node-jose';
 
 import {ItsmeDiscoveryConfiguration} from './interfaces/itsme-configuration.interface';
-import {getKey, KeyLookupOptions} from './util/key-lookup';
+import {getKey} from './util/key-lookup';
 
 export class IdentityProvider {
 

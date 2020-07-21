@@ -1,4 +1,4 @@
-import {JWKKey, KeyStore} from 'node-jose';
+import {JWK} from 'node-jose';
 
 export interface BaseKeyLookupOptions {
     kid?: string;
@@ -6,11 +6,6 @@ export interface BaseKeyLookupOptions {
     use?: 'sig' | 'enc';
 
     [k: string]: any;
-}
-
-interface PlainKeyLookupOptions extends BaseKeyLookupOptions {
-    alg?: string;
-    enc?: string;
 }
 
 export interface KeyLookupOptions extends BaseKeyLookupOptions {
@@ -36,8 +31,8 @@ function normalizeToArray(input?: Array<string> | string) {
  */
 function find(
     keyLookup: KeyLookupOptions,
-    callback: (lookup: PlainKeyLookupOptions) => undefined | JWKKey,
-): JWKKey | undefined {
+    callback: (lookup: JWK.KeyStoreGetOptions) => undefined | JWK.RawKey,
+): JWK.RawKey | undefined {
     const setDefined = (object, input) => {
         Object.keys(input)
             .filter(k => input[k] !== undefined)
@@ -60,7 +55,7 @@ function find(
         }
     }
 
-    return null;
+    return;
 }
 
 /**
@@ -68,6 +63,9 @@ function find(
  * @param keyStore The key store to search in
  * @param keyLookup The lookup options.
  */
-export function getKey(keyStore: KeyStore, keyLookup: KeyLookupOptions): JWKKey | null {
+export function getKey(
+    keyStore: JWK.KeyStore,
+    keyLookup: KeyLookupOptions,
+): JWK.RawKey | undefined {
     return find(keyLookup, lookup => keyStore.get(lookup));
 }

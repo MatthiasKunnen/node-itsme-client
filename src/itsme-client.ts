@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import Axios, { AxiosInstance } from 'axios';
-import * as base64url from 'base64url';
+import base64url from 'base64url';
 import { JWE, JWS } from 'node-jose';
 import * as qs from 'qs';
 import * as uuid from 'uuid/v4';

@@ -23,6 +23,8 @@ encrypting.
 
 The library is written in TypeScript, so typings are available. Plain Node.js
 will also work.
+When using TypeScript, add `@node_modules/itsme-client/@types` to your
+[typeRoots](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#types-typeroots-and-types).
 
 # Usage
 ## Initialize ItsmeClient

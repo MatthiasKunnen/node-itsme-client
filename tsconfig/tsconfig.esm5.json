@@ -1,9 +1,8 @@
 {
-    "extends": "./tsconfig.base.json",
+    "extends": "../tsconfig.base.json",
     "compilerOptions": {
         "module": "es2015",
-        "importHelpers": true,
-        "target": "es5",
-        "outDir": "../dist/esm5"
+        "outDir": "../dist/esm5",
+        "target": "es5"
     }
 }

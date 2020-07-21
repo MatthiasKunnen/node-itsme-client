@@ -1,9 +1,8 @@
 {
-    "extends": "./tsconfig.base.json",
+    "extends": "../tsconfig.base.json",
     "compilerOptions": {
         "module": "es2015",
-        "importHelpers": true,
-        "target": "es2015",
-        "outDir": "../dist"
+        "outDir": "../dist",
+        "target": "es2015"
     }
 }

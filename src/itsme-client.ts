@@ -1,21 +1,22 @@
 import * as assert from 'assert';
-import Axios, { AxiosInstance } from 'axios';
+
+import Axios, {AxiosInstance} from 'axios';
 import base64url from 'base64url';
-import { JWE, JWS } from 'node-jose';
+import {JWE, JWS} from 'node-jose';
 import * as qs from 'qs';
 import * as uuid from 'uuid/v4';
 
-import { IdentityProvider } from './identity-provider';
-import { ApprovalInput, ApprovalRequest } from './interfaces/approval.interface';
-import { Claims, UserInfoClaims } from './interfaces/claims.interface';
+import {IdentityProvider} from './identity-provider';
+import {ApprovalInput, ApprovalRequest} from './interfaces/approval.interface';
+import {Claims, UserInfoClaims} from './interfaces/claims.interface';
 import {
     ItsmeRpConfiguration,
     ItsmeRpConfigurationInput,
 } from './interfaces/itsme-configuration.interface';
-import { JwkSet } from './interfaces/jwk-set.interface';
-import { JwtPayload } from './interfaces/jwt.interface';
-import { Header, TokenResponse } from './interfaces/token.interface';
-import { getKey } from './util/key-lookup';
+import {JwkSet} from './interfaces/jwk-set.interface';
+import {JwtPayload} from './interfaces/jwt.interface';
+import {Header, TokenResponse} from './interfaces/token.interface';
+import {getKey} from './util/key-lookup';
 
 export class ItsmeClient {
 
@@ -32,7 +33,7 @@ export class ItsmeClient {
             rp.serviceCodes = {};
         }
 
-        this.rp = <ItsmeRpConfiguration>rp; // Cast to deal with input type mismatch
+        this.rp = rp as ItsmeRpConfiguration; // Cast to deal with input type mismatch
 
         this.http = Axios.create();
         this.http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -102,7 +103,7 @@ export class ItsmeClient {
      * 3. Make the approval request using GET
      */
     async getApprovalRequest(input: ApprovalInput): Promise<ApprovalRequest> {
-        if (input.telephoneNumber == null && input.sub == null) {
+        if (input.telephoneNumber === undefined && input.sub === undefined) {
             throw Error('Expected one of "sub" or "telephone number" to be present');
         }
 
@@ -182,7 +183,7 @@ export class ItsmeClient {
     async decryptAndVerifyIdToken(token: string): Promise<JwtPayload> {
         const decrypted = await this.decryptIdToken(token);
 
-        return await this.verifyIdToken(decrypted);
+        return this.verifyIdToken(decrypted);
     }
 
     /**
@@ -201,7 +202,7 @@ export class ItsmeClient {
      * @param token The token to verify.
      */
     async verifyIdToken(token: string): Promise<JwtPayload> {
-        return await this.verify(
+        return this.verify(
             token,
             this.idp.configuration.id_token_signing_alg_values_supported,
             ['iss', 'sub', 'aud', 'exp', 'iat'],
@@ -237,7 +238,7 @@ export class ItsmeClient {
     async userInfoComplete(accessToken: string) {
         const userInfoJwe = await this.userInfo(accessToken);
         const userInfoJws = await this.decryptUserInfo(userInfoJwe);
-        return await this.verifyUserInfo(userInfoJws);
+        return this.verifyUserInfo(userInfoJws);
     }
 
     /**
@@ -345,7 +346,8 @@ export class ItsmeClient {
             assert(timestamp - this.clockTolerance < payload.exp, 'JWS expired');
         }
 
-        if (payload.aud !== undefined) {
+        // @todo Check if aud check is required and can ever be an array
+        if (payload.aud as any !== undefined) {
             const aud: Array<string> = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
             assert(aud.includes(this.rp.clientId), 'aud is missing the client ID');
         }

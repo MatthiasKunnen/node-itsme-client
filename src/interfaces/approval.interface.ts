@@ -1,7 +1,7 @@
 export interface ApprovalTemplate {
     'tag:sixdots.be,2016-08:claim_approval_template_name': {
         value: string;
-        essential: true,
+        essential: true;
     };
 
     [k: string]: {

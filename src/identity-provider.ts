@@ -1,10 +1,10 @@
 import Axios from 'axios';
 import * as LRU from 'lru-cache';
 import * as ms from 'ms';
-import { JWK, JWKKey, KeyStore } from 'node-jose';
+import {JWK, JWKKey, KeyStore} from 'node-jose';
 
-import { ItsmeDiscoveryConfiguration } from './interfaces/itsme-configuration.interface';
-import { getKey, KeyLookupOptions } from './util/key-lookup';
+import {ItsmeDiscoveryConfiguration} from './interfaces/itsme-configuration.interface';
+import {getKey, KeyLookupOptions} from './util/key-lookup';
 
 export class IdentityProvider {
 
@@ -16,7 +16,7 @@ export class IdentityProvider {
      * Using the static discover method is recommended.
      * @param configuration
      */
-    constructor(public readonly configuration: ItsmeDiscoveryConfiguration) {
+    constructor(readonly configuration: ItsmeDiscoveryConfiguration) {
         if (!configuration.token_endpoint_auth_methods_supported.includes('private_key_jwt')) {
             throw Error('Expected private_key_jwt for token endpoint auth methods');
         }
@@ -55,11 +55,11 @@ export class IdentityProvider {
 
     isKeyCached(kid: string): boolean {
         // Use get to hit cache
-        return <any>this.cache.get(this.keyPrefix + kid) === true;
+        return this.cache.get(this.keyPrefix + kid) !== undefined;
     }
 
     private async refreshKeyStore() {
-        if (this.keyStore !== undefined && this.cache.get('throttle')) {
+        if (this.keyStore !== undefined && this.cache.get('throttle') === true) {
             return;
         }
 

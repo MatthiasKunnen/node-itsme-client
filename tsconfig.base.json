@@ -10,7 +10,8 @@
         "moduleResolution": "node",
         "preserveConstEnums": true,
         "sourceMap": true,
-        "sourceRoot": "src"
+        "sourceRoot": "src",
+        "strictNullChecks": true
     },
 
     "files": [

@@ -1,4 +1,4 @@
-import { JWKKey, KeyStore } from 'node-jose';
+import {JWKKey, KeyStore} from 'node-jose';
 
 export interface BaseKeyLookupOptions {
     kid?: string;
@@ -41,7 +41,9 @@ function find(
     const setDefined = (object, input) => {
         Object.keys(input)
             .filter(k => input[k] !== undefined)
-            .forEach(k => object[k] = input[k]);
+            .forEach(k => {
+                object[k] = input[k];
+            });
 
         return object;
     };

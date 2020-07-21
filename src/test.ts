@@ -1,9 +1,8 @@
-import * as qs from 'qs';
-import { generateFreeTextApprovalTemplate } from './approval-templates/free-text.approval-template';
-import { IdentityProvider } from './identity-provider';
-import { JwkSet } from './interfaces/jwk-set.interface';
-import { ItsmeClient } from './itsme-client';
-import { createKeyStore } from './util';
+import {generateFreeTextApprovalTemplate} from './approval-templates/free-text.approval-template';
+import {IdentityProvider} from './identity-provider';
+import {JwkSet} from './interfaces/jwk-set.interface';
+import {ItsmeClient} from './itsme-client';
+import {createKeyStore} from './util';
 
 async function test() {
     const itsmeDiscoveryUrl = 'https://e2emerchant.itsme.be/oidc/.well-known/openid-configuration';

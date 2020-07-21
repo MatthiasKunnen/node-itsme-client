@@ -20,7 +20,7 @@
         "compile_dist_esm2015": "tsc -p ./tsconfig/tsconfig.esm2015.json",
         "copy-before-publish": "cp -R ./package.json ./README.md ./@types ./dist",
         "lint": "npm-run-all ts-lint",
-        "precommit": "npm run lint",
+        "precommit": "yarn run lint",
         "ts-lint": "tslint -p tsconfig.base.json"
     },
     "dependencies": {
@@ -53,6 +53,10 @@
         "client",
         "node"
     ],
+    "engines": {
+        "node": ">=12.0.0",
+        "yarn": "~1.22.0"
+    },
     "author": "Matthias Kunnen <matthias.kunnen@gmail.com>",
     "license": "LGPL-3.0-only",
     "bugs": {

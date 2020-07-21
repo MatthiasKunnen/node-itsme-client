@@ -1,17 +1,17 @@
 // Identity provider
-export { IdentityProvider } from './identity-provider';
+export {IdentityProvider} from './identity-provider';
 
 // ItsmeClient
 export {
     ItsmeRpConfigurationInput,
     ItsmeDiscoveryConfiguration,
 } from './interfaces/itsme-configuration.interface';
-export { ItsmeClient } from './itsme-client';
+export {ItsmeClient} from './itsme-client';
 
 // JWT
-export { JwkSet } from './interfaces/jwk-set.interface';
-export { Jwk } from './interfaces/jwk.interface';
-export { JwtPayload } from './interfaces/jwt.interface';
+export {JwkSet} from './interfaces/jwk-set.interface';
+export {Jwk} from './interfaces/jwk.interface';
+export {JwtPayload} from './interfaces/jwt.interface';
 
 // Util
 export {
@@ -22,10 +22,10 @@ export {
 export {
     TokenResponse,
 } from './interfaces/token.interface';
-export { UserInfoClaims } from './interfaces/claims.interface';
+export {UserInfoClaims} from './interfaces/claims.interface';
 
 // Approval
-export { ApprovalInput, ApprovalTemplate } from './interfaces/approval.interface';
+export {ApprovalInput, ApprovalTemplate} from './interfaces/approval.interface';
 export {
     FreeTextApprovalTemplate,
     generateFreeTextApprovalTemplate,

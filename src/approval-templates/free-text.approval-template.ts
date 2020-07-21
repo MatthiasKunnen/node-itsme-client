@@ -1,4 +1,4 @@
-import { ApprovalTemplate } from '../interfaces/approval.interface';
+import {ApprovalTemplate} from '../interfaces/approval.interface';
 
 export interface FreeTextApprovalTemplate {
 

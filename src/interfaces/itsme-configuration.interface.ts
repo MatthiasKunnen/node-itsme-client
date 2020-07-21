@@ -1,4 +1,4 @@
-import { KeyStore } from 'node-jose';
+import {KeyStore} from 'node-jose';
 
 /**
  * The input of the configuration of the relying party.
@@ -58,7 +58,7 @@ export interface ItsmeDiscoveryConfiguration {
     issuer: string;
     jwks_uri: string;
     registration_endpoint: string;
-    request_object_encryption_alg_values_supported: Array<string>;
+    request_object_encryption_alg_values_supported?: Array<string>;
     request_object_encryption_enc_values_supported: Array<string>;
     request_object_signing_alg_values_supported: Array<string>;
     request_parameter_supported: boolean;

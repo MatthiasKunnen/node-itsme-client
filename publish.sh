@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if output=$(git status --untracked-files=no --porcelain) && [ -n "$output" ]; then
+    echo The working directory is not clean!
+    exit 1
+fi
+
 echo "What type of publish?"
 select version_type in "patch" "minor" "major"; do
     if [ -z "$version_type" ]; then
@@ -11,14 +16,14 @@ select version_type in "patch" "minor" "major"; do
     version=`npm version ${version_type} --git-tag-version=false` || exit "$?"
 
     # Get last tag
-    last_tag=`git describe --abbrev=0 2>/dev/null`..HEAD
+    last_tag=`git describe --abbrev=0 2>/dev/null`
 
     if [ "$?" -ne  "0" ]; then
         echo "There is no previous tag, assuming first publication"
         last_tag=`git rev-list --max-parents=0 HEAD` || exit "$?"
     fi
 
-    changelog=`git log --no-merges --pretty=tformat:"- %s%n%w(100,2,2)%-b" ${last_tag}`
+    changelog=`git log --pretty=tformat:"- %s%n%w(100,2,2)%-b" ${last_tag}..HEAD`
     message="Bumped package version to $version"
 
     echo "Message:"
@@ -28,16 +33,18 @@ select version_type in "patch" "minor" "major"; do
     echo ""
     echo "Changelog:"
     echo -e "$changelog"
-    read -p "Examine changelog. [Enter] to continue"
+    echo "${changelog}" > CHANGELOG_MSG
+    read -p "Examine changelog, edit CHANGELOG_MSG if desired. [Enter] to continue"
+    changelog="$(<CHANGELOG_MSG)"
+    rm -f CHANGELOG_MSG
 
     read -p "Creating commit and tag for a $version_type release ($version). Press [Enter].";
 
-    git add package.json package-lock.json || exit "$?"
+    git add package.json || exit "$?"
     git commit -m "$message" || exit "$?"
 
     tag_args=(
         -a
-        -m "Released $version"
         -m "$changelog"
     )
 
@@ -50,13 +57,11 @@ select version_type in "patch" "minor" "major"; do
 
     git tag "${version}" "${tag_args[@]}" || exit "$?"
 
-    rm -Rf dist
     echo "Building"
     npm run build || exit "$?"
-    cp ./package.json ./.npmignore ./dist || exit "$?"
-    cd dist || exit "$?"
 
     read -p "Ready to publish?; [Enter] to continue";
     npm publish || exit "$?"
+    git push --follow-tags
     break
 done

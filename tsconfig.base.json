@@ -1,18 +1,24 @@
 {
     "compileOnSave": false,
     "compilerOptions": {
-        "baseUrl": "src",
+        "baseUrl": "./",
+        "declaration": false,
+        "importHelpers": true,
         "lib": [
             "es5",
             "es2015",
             "es2016"
         ],
+        "module": "es2015",
         "moduleResolution": "node",
-        "preserveConstEnums": true,
+        "noImplicitAny": false,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
         "sourceMap": true,
-        "sourceRoot": "src"
+        "strict": true,
+        "stripInternal": true
     },
-
     "files": [
         "src/index.ts"
     ]

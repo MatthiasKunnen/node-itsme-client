@@ -115,7 +115,7 @@ declare module 'node-jose' {
             form: 'json' | 'private' | 'pkcs8' | 'public' | 'spki' | 'pkix' | 'x509' | 'pem',
         ): Promise<JWKKey>;
 
-        remove(key: JWKKey);
+        remove(key: JWKKey): void;
     }
 
     export interface JWKKey {
@@ -144,7 +144,7 @@ declare module 'node-jose' {
         /**
          * Defaults to false
          */
-        toPEM(isPrivate?: boolean);
+        toPEM(isPrivate?: boolean): string;
     }
 
     export interface JWK {

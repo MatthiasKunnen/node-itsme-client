@@ -2,23 +2,14 @@
     "name": "itsme-client",
     "version": "1.0.1",
     "description": "A library to process itsme responses and consume itsme endpoints.",
-    "es2015": "index.js",
-    "main": "cjs/index.js",
-    "module": "./_esm5/index.js",
-    "types": "index.d.ts",
+    "es2015": "lib/es2015/index.js",
+    "main": "lib/cjs/index.js",
+    "module": "lib/esm5/index.js",
+    "types": "lib/es2015/index.d.ts",
     "scripts": {
-        "build": "npm-run-all clean_dist build_cjs build_esm5 build_esm2015 copy-before-publish",
-        "build_cjs": "npm-run-all clean_dist_cjs && npm run compile_dist_cjs",
-        "build_esm5": "npm-run-all clean_dist_esm5 compile_dist_esm5",
-        "build_esm2015": "npm-run-all clean_dist_esm2015 compile_dist_esm2015",
-        "clean_dist": "rimraf ./dist",
-        "clean_dist_cjs": "rimraf ./dist/cjs",
-        "clean_dist_esm5": "rimraf ./dist/esm5",
-        "clean_dist_esm2015": "rimraf ./dist/esm2015",
-        "compile_dist_cjs": "tsc -p ./tsconfig/tsconfig.cjs.json",
-        "compile_dist_esm5": "tsc -p ./tsconfig/tsconfig.esm5.json",
-        "compile_dist_esm2015": "tsc -p ./tsconfig/tsconfig.esm2015.json",
-        "copy-before-publish": "cp -R ./package.json ./README.md ./@types ./dist",
+        "build": "npm-run-all build:**",
+        "build:clean": "rimraf ./lib",
+        "build:ts": "tsc --build ./tsconfig/tsconfig.*.json",
         "lint": "eslint \"src/**/*.ts\""
     },
     "dependencies": {
@@ -47,6 +38,10 @@
         "type": "git",
         "url": "git+https://github.com/MatthiasKunnen/node-itsme-client.git"
     },
+    "files": [
+        "@types",
+        "lib"
+    ],
     "keywords": [
         "itsme",
         "client",

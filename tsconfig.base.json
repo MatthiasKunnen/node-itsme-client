@@ -2,7 +2,7 @@
     "compileOnSave": false,
     "compilerOptions": {
         "baseUrl": "./",
-        "declaration": true,
+        "declaration": false,
         "importHelpers": true,
         "lib": [
             "es5",

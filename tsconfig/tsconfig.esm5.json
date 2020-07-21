@@ -2,7 +2,7 @@
     "extends": "../tsconfig.base.json",
     "compilerOptions": {
         "module": "es2015",
-        "outDir": "../dist/esm5",
+        "outDir": "../lib/esm5",
         "target": "es5"
     }
 }

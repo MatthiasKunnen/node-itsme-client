@@ -2,7 +2,7 @@
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
         "module": "commonjs",
-        "outDir": "./out-tsc",
+        "noEmit": true,
         "target": "es2015"
     },
     "include": [

@@ -23,7 +23,7 @@ select version_type in "patch" "minor" "major"; do
         last_tag=`git rev-list --max-parents=0 HEAD` || exit "$?"
     fi
 
-    changelog=`git log --pretty=tformat:"- %s%n%w(100,2,2)%-b" ${last_tag}..HEAD`
+    changelog=`git log --no-merges --pretty=tformat:"- %s%n%w(100,2,2)%-b" ${last_tag}..HEAD`
     message="Bumped package version to $version"
 
     echo "Message:"

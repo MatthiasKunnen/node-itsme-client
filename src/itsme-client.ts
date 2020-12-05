@@ -8,6 +8,7 @@ import * as uuid from 'uuid/v4';
 
 import {IdentityProvider} from './identity-provider';
 import {ApprovalInput, ApprovalRequest} from './interfaces/approval.interface';
+import {AuthURL} from './interfaces/authurl.interface';
 import {Claims, UserInfoClaims} from './interfaces/claims.interface';
 import {
     ItsmeRpConfiguration,
@@ -50,6 +51,27 @@ export class ItsmeClient {
 
             return request;
         });
+    }
+
+    /**
+     * Generate an Authorization URL to redirect the end-user to with the specified parameters.
+     * @param authconfig The Options for the Authorization request.
+     */
+    async generateAuthURL(
+        authconfig: AuthURL,
+    ): Promise<String> {
+        const params: any = {
+            client_id: this.rp.clientId,
+            response_type: 'code',
+            scope: `openid ${authconfig.scopes.join(' ')}`.trim(),
+            redirect_uri: authconfig.redirect_uri,
+        };
+
+        if (authconfig.state !== undefined) {
+            params['state'] = authconfig.state;
+        }
+
+        return `${this.idp.configuration.authorization_endpoint}?${qs.stringify(params)}`;
     }
 
     /**

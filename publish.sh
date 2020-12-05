@@ -58,7 +58,7 @@ select version_type in "patch" "minor" "major"; do
     git tag "${version}" "${tag_args[@]}" || exit "$?"
 
     echo "Building"
-    npm run build || exit "$?"
+    yarn run build || exit "$?"
 
     read -p "Ready to publish?; [Enter] to continue";
     npm publish || exit "$?"

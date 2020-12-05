@@ -3,7 +3,9 @@ export {IdentityProvider} from './identity-provider';
 
 // ItsmeClient
 export {
-    ItsmeRpConfigurationInput,
+    GenerateAuthUrlInput,
+} from './interfaces/auth-url';
+export {
     ItsmeDiscoveryConfiguration,
 } from './interfaces/itsme-configuration.interface';
 export {ItsmeClient} from './itsme-client';

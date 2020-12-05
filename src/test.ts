@@ -1,3 +1,5 @@
+import * as assert from 'assert';
+
 import {generateFreeTextApprovalTemplate} from './approval-templates/free-text.approval-template';
 import {IdentityProvider} from './identity-provider';
 import {JwkSet} from './interfaces/jwk-set.interface';
@@ -67,6 +69,14 @@ async function test() {
                 FORCIT_LOGIN: 'https://119c2a3a.ngrok.io/callback/vote',
             },
         },
+    );
+
+    assert.strictEqual(
+        itsmeClient.generateAuthUrl({
+        service: 'FORCIT_LOGIN',
+        }).toString(),
+        `https://e2emerchant.itsme.be/oidc/authorization?client_id=eyhPsqyaEf&redirect_uri=https%3A\
+%2F%2F119c2a3a.ngrok.io%2Fcallback%2Fvote&response_type=code&scope=openid+service%3AFORCIT_LOGIN`,
     );
 
     console.log(await itsmeClient.getApprovalRequest({

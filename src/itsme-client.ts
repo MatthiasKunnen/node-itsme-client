@@ -1,4 +1,5 @@
 import * as assert from 'assert';
+import {URL} from 'url';
 
 import Axios, {AxiosInstance} from 'axios';
 import base64url from 'base64url';
@@ -8,34 +9,24 @@ import * as uuid from 'uuid/v4';
 
 import {IdentityProvider} from './identity-provider';
 import {ApprovalInput, ApprovalRequest} from './interfaces/approval.interface';
-import {AuthURL} from './interfaces/authurl.interface';
+import {GenerateAuthUrlInput} from './interfaces/auth-url';
 import {Claims, UserInfoClaims} from './interfaces/claims.interface';
-import {
-    ItsmeRpConfiguration,
-    ItsmeRpConfigurationInput,
-} from './interfaces/itsme-configuration.interface';
+import {ItsmeRpConfiguration} from './interfaces/itsme-configuration.interface';
 import {JwkSet} from './interfaces/jwk-set.interface';
 import {JwtPayload} from './interfaces/jwt.interface';
 import {Header, TokenResponse} from './interfaces/token.interface';
 import {getKey} from './util/key-lookup';
 
-export class ItsmeClient {
+export class ItsmeClient<ServiceCodes extends string> {
 
     private format = 'compact';
     private http: AxiosInstance;
-    private rp: ItsmeRpConfiguration;
 
     constructor(
         public idp: IdentityProvider,
-        rp: ItsmeRpConfigurationInput,
+        private rp: ItsmeRpConfiguration<ServiceCodes>,
         private clockTolerance = 0,
     ) {
-        if (rp.serviceCodes === undefined) {
-            rp.serviceCodes = {};
-        }
-
-        this.rp = rp as ItsmeRpConfiguration; // Cast to deal with input type mismatch
-
         this.http = Axios.create();
         this.http.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
         this.http.interceptors.request.use(request => {
@@ -93,7 +84,7 @@ export class ItsmeClient {
      */
     async exchangeAuthorizationCode(
         authorizationCode: string,
-        redirectUri: string,
+        redirectUri: string | URL,
     ): Promise<TokenResponse> {
         const exp = new Date();
         exp.setUTCMilliseconds(exp.getUTCMilliseconds() + 5 * 60 * 1000);
@@ -128,24 +119,35 @@ export class ItsmeClient {
     }
 
     /**
-     * Generate an Authorization URL to redirect the end-user to with the specified parameters.
-     * @param authconfig The Options for the Authorization request.
+     * Generate a URL for use in the Authentication request. See
+     * [3.4. Forging an Authentication Request](https://belgianmobileid.github.io/slate/login.html).
      */
-    async generateAuthURL(
-        authconfig: AuthURL,
-    ): Promise<String> {
-        const params: any = {
+    generateAuthUrl(input: GenerateAuthUrlInput<ServiceCodes>): URL {
+        const url = new URL(this.idp.configuration.authorization_endpoint);
+        const scopes = [
+            'openid',
+            `service:${input.service}`,
+            ...input.additionalScopes ?? [],
+        ];
+
+        const params: {[k: string]: string | undefined} = {
             client_id: this.rp.clientId,
+            redirect_uri: this.getRedirectUri(input.service),
             response_type: 'code',
-            scope: `openid ${authconfig.scopes.join(' ')}`.trim(),
-            redirect_uri: authconfig.redirect_uri,
+            scope: scopes.join(' ').trim(),
+            state: input.state,
+            ...input.additionalParams,
         };
 
-        if (authconfig.state !== undefined) {
-            params['state'] = authconfig.state;
-        }
+        Object.entries(params).forEach(([key, value]) => {
+            if (value === undefined) {
+                return;
+            }
 
-        return `${this.idp.configuration.authorization_endpoint}?${qs.stringify(params)}`;
+            url.searchParams.append(key, value);
+        });
+
+        return url;
     }
 
     /**
@@ -156,7 +158,7 @@ export class ItsmeClient {
      * 2. Store the generated JWE on a public URI
      * 3. Make the approval request using GET
      */
-    async getApprovalRequest(input: ApprovalInput): Promise<ApprovalRequest> {
+    async getApprovalRequest(input: ApprovalInput<ServiceCodes>): Promise<ApprovalRequest> {
         if (input.telephoneNumber === undefined && input.sub === undefined) {
             throw Error('Expected one of "sub" or "telephone number" to be present');
         }
@@ -177,7 +179,7 @@ export class ItsmeClient {
 
         const redirectUri = this.getRedirectUri(input.serviceCode);
 
-        if (redirectUri === undefined) {
+        if (redirectUri as any === undefined) { // Sanity check
             throw Error(`Cannot find service code ${input.serviceCode}`);
         }
 
@@ -221,7 +223,7 @@ export class ItsmeClient {
      * Get a redirect URI based on a service code lookup.
      * @param serviceCode
      */
-    getRedirectUri(serviceCode: string): string | undefined {
+    getRedirectUri(serviceCode: ServiceCodes): string {
         return this.rp.serviceCodes[serviceCode];
     }
 

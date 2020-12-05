@@ -11,7 +11,7 @@ export interface ApprovalTemplate {
     };
 }
 
-export interface ApprovalInput {
+export interface ApprovalInput<ServiceCodes extends string> {
 
     /**
      * The approval template to use. Generate one using
@@ -38,7 +38,7 @@ export interface ApprovalInput {
      * The service code of this approval. This will also be used to use the
      * correct redirect URI.
      */
-    serviceCode: string;
+    serviceCode: ServiceCodes;
 
     /**
      * Use sub to refer to the previously identified user that you seek

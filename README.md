@@ -28,6 +28,8 @@ When using TypeScript, add `@node_modules/itsme-client/@types` to your
 
 # Usage
 ## Initialize ItsmeClient
+This is the basic usage, more options and methods are available. Intellisense and jsdoc should
+help you find and understand them.
 
 ```TypeScript
 import { createKeyStore, IdentityProvider, ItsmeClient } from 'itsme-client';
@@ -38,6 +40,9 @@ async function initItsmeClient() {
     return new ItsmeClient(itsmeProvider, {
         clientId: 'your client id here',
         keyStore: await createKeyStore(yourJwkSet),
+        serviceCodes: {
+            YOUR_SERVICE_CODE: 'https://the-redirect-url-matching-this-service-code',
+        },
     });
 }
 ```
@@ -50,7 +55,10 @@ import { ItsmeClient } from 'itsme-client';
 async function wrapper(itsmeClient: ItsmeClient) {
     const token = await itsmeClient.exchangeAuthorizationCode(
         'Authorization code here',
-        'https://your-redirect.url/here', // The callback used to acquire the Authorization code
+        itsmeClient.generateAuthUrl({
+            service: 'YOUR_SERVICE_CODE',
+            state: 'optional state',
+        }),
     );
 
     // Get the user info via the userInfo endpoint

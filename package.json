@@ -10,7 +10,8 @@
         "build": "npm-run-all build:**",
         "build:clean": "rimraf ./lib",
         "build:ts": "tsc --build ./tsconfig/tsconfig.*.json",
-        "lint": "eslint \"src/**/*.ts\""
+        "lint": "eslint \"src/**/*.ts\"",
+        "test": "TS_NODE_PROJECT=tsconfig.json ts-node src/test.ts"
     },
     "dependencies": {
         "axios": "^0.18.0",

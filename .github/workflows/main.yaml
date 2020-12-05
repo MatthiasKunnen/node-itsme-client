@@ -1,0 +1,32 @@
+name: Main
+
+on: [push]
+
+jobs:
+  build:
+    name: Lint, build, and test
+    runs-on: ubuntu-18.04
+    steps:
+      -
+        uses: actions/checkout@v1
+      -
+        name: Use Node.js 12
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      -
+        name: Get yarn cache directory
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      -
+        name: Install dependencies
+        run: yarn install --frozen-lockfile
+      -
+        name: Lint
+        run: yarn run lint
+      -
+        name: Build
+        run: yarn run build
+      -
+        name: Test
+        run: yarn run test

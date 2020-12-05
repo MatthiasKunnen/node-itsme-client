@@ -9,8 +9,8 @@ import {getKey, KeyLookupOptions} from './util/key-lookup';
 export class IdentityProvider {
 
     private cache: LRU.Cache<string, boolean>;
-    private keyStore: KeyStore;
     private readonly keyPrefix = 'key/';
+    private keyStore: KeyStore;
 
     /**
      * Using the static discover method is recommended.

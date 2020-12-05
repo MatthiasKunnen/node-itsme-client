@@ -54,24 +54,35 @@ export class ItsmeClient {
     }
 
     /**
-     * Generate an Authorization URL to redirect the end-user to with the specified parameters.
-     * @param authconfig The Options for the Authorization request.
+     * Decrypts and verifies an ID Token.
+     * @param token
      */
-    async generateAuthURL(
-        authconfig: AuthURL,
-    ): Promise<String> {
-        const params: any = {
-            client_id: this.rp.clientId,
-            response_type: 'code',
-            scope: `openid ${authconfig.scopes.join(' ')}`.trim(),
-            redirect_uri: authconfig.redirect_uri,
-        };
+    async decryptAndVerifyIdToken(token: string): Promise<JwtPayload> {
+        const decrypted = await this.decryptIdToken(token);
 
-        if (authconfig.state !== undefined) {
-            params['state'] = authconfig.state;
-        }
+        return this.verifyIdToken(decrypted);
+    }
 
-        return `${this.idp.configuration.authorization_endpoint}?${qs.stringify(params)}`;
+    /**
+     * Decrypts the token and returns the decrypted result.
+     * @param token The token to decrypt.
+     */
+    async decryptIdToken(token: string): Promise<string> {
+        return this.decrypt(
+            token,
+            this.idp.configuration.id_token_encryption_alg_values_supported,
+        );
+    }
+
+    /**
+     * Decrypts the user info response and returns an encoded JWS.
+     * @param jwe The JWE to decrypt.
+     */
+    async decryptUserInfo(jwe: string): Promise<string> {
+        return this.decrypt(
+            jwe,
+            this.idp.configuration.userinfo_encryption_alg_values_supported,
+        );
     }
 
     /**
@@ -114,6 +125,27 @@ export class ItsmeClient {
         );
 
         return tokenResponse.data;
+    }
+
+    /**
+     * Generate an Authorization URL to redirect the end-user to with the specified parameters.
+     * @param authconfig The Options for the Authorization request.
+     */
+    async generateAuthURL(
+        authconfig: AuthURL,
+    ): Promise<String> {
+        const params: any = {
+            client_id: this.rp.clientId,
+            response_type: 'code',
+            scope: `openid ${authconfig.scopes.join(' ')}`.trim(),
+            redirect_uri: authconfig.redirect_uri,
+        };
+
+        if (authconfig.state !== undefined) {
+            params['state'] = authconfig.state;
+        }
+
+        return `${this.idp.configuration.authorization_endpoint}?${qs.stringify(params)}`;
     }
 
     /**
@@ -193,39 +225,6 @@ export class ItsmeClient {
         return this.rp.serviceCodes[serviceCode];
     }
 
-    /**
-     * Decrypts and verifies an ID Token.
-     * @param token
-     */
-    async decryptAndVerifyIdToken(token: string): Promise<JwtPayload> {
-        const decrypted = await this.decryptIdToken(token);
-
-        return this.verifyIdToken(decrypted);
-    }
-
-    /**
-     * Decrypts the token and returns the decrypted result.
-     * @param token The token to decrypt.
-     */
-    async decryptIdToken(token: string): Promise<string> {
-        return this.decrypt(
-            token,
-            this.idp.configuration.id_token_encryption_alg_values_supported,
-        );
-    }
-
-    /**
-     * Verifies a token and extracts its contents.
-     * @param token The token to verify.
-     */
-    async verifyIdToken(token: string): Promise<JwtPayload> {
-        return this.verify(
-            token,
-            this.idp.configuration.id_token_signing_alg_values_supported,
-            ['iss', 'sub', 'aud', 'exp', 'iat'],
-        );
-    }
-
     async requestObject(request: {[k: string]: any}) {
         const signedRequest = await this.sign(
             JSON.stringify(request),
@@ -243,19 +242,6 @@ export class ItsmeClient {
             encAlgs,
             this.idp.configuration.request_object_encryption_enc_values_supported,
         );
-    }
-
-    /**
-     * Combines {@link userInfo}, {@link decryptUserInfo}, and
-     * {@link verifyUserInfo}. Takes care of fetching, decrypting, verifying and
-     * extracting the claims.
-     * @param accessToken The Access Token to leverage for retrieving the user
-     * info.
-     */
-    async userInfoComplete(accessToken: string) {
-        const userInfoJwe = await this.userInfo(accessToken);
-        const userInfoJws = await this.decryptUserInfo(userInfoJwe);
-        return this.verifyUserInfo(userInfoJws);
     }
 
     /**
@@ -279,13 +265,27 @@ export class ItsmeClient {
     }
 
     /**
-     * Decrypts the user info response and returns an encoded JWS.
-     * @param jwe The JWE to decrypt.
+     * Combines {@link userInfo}, {@link decryptUserInfo}, and
+     * {@link verifyUserInfo}. Takes care of fetching, decrypting, verifying and
+     * extracting the claims.
+     * @param accessToken The Access Token to leverage for retrieving the user
+     * info.
      */
-    async decryptUserInfo(jwe: string): Promise<string> {
-        return this.decrypt(
-            jwe,
-            this.idp.configuration.userinfo_encryption_alg_values_supported,
+    async userInfoComplete(accessToken: string) {
+        const userInfoJwe = await this.userInfo(accessToken);
+        const userInfoJws = await this.decryptUserInfo(userInfoJwe);
+        return this.verifyUserInfo(userInfoJws);
+    }
+
+    /**
+     * Verifies a token and extracts its contents.
+     * @param token The token to verify.
+     */
+    async verifyIdToken(token: string): Promise<JwtPayload> {
+        return this.verify(
+            token,
+            this.idp.configuration.id_token_signing_alg_values_supported,
+            ['iss', 'sub', 'aud', 'exp', 'iat'],
         );
     }
 
@@ -312,111 +312,6 @@ export class ItsmeClient {
         }
 
         return userInfo;
-    }
-
-    /**
-     * Returns the JWS payload if the JWS is valid. Errors if it is not.
-     * @param jws The encoded JWS to verify.
-     * @param supportedSigningAlgorithms Supported signing algorithms for this
-     * IDP.
-     * @param requiredFields An array of fields that are required for the JWT
-     * payload.
-     */
-    private async verify(
-        jws: string,
-        supportedSigningAlgorithms: Array<string>,
-        requiredFields: Array<string>,
-    ): Promise<JwtPayload> {
-        const timestamp = Math.floor(Date.now() / 1000);
-        const parts = jws.split('.');
-        const header: Header = JSON.parse(base64url.decode(parts[0]));
-        const payload: JwtPayload = JSON.parse(base64url.decode(parts[1]));
-
-        requiredFields.forEach(field => {
-            if (payload[field] === undefined) {
-                throw new Error(`Missing required JWT property ${field}`);
-            }
-        });
-
-        const alg = supportedSigningAlgorithms.find(a => a === header.alg);
-        if (alg === undefined) {
-            throw Error('No matching algorithm for verification found.');
-        }
-
-        assert.strictEqual(
-            payload.iss,
-            this.idp.configuration.issuer,
-            `Unexpected iss value '${payload.iss}' in token`,
-        );
-
-        if (payload.iat !== undefined) {
-            assert.strictEqual(typeof payload.iat, 'number', 'iat is not a number');
-            assert(payload.iat <= timestamp + this.clockTolerance, 'JWS issued in the future');
-        }
-
-        if (payload.nbf !== undefined) {
-            assert.strictEqual(typeof payload.nbf, 'number', 'nbf is not a number');
-            assert(payload.nbf <= timestamp + this.clockTolerance, 'JWS not active yet');
-        }
-
-        if (payload.exp !== undefined) {
-            assert(timestamp - this.clockTolerance < payload.exp, 'JWS expired');
-        }
-
-        // @todo Check if aud check is required and can ever be an array
-        if (payload.aud as any !== undefined) {
-            const aud: Array<string> = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-            assert(aud.includes(this.rp.clientId), 'aud is missing the client ID');
-        }
-
-        const key = await this.idp.getKey(header);
-        await JWS.createVerify(key).verify(jws);
-
-        return payload;
-    }
-
-    private async tokenAuth(
-        data: string,
-        supportedMethods: Array<string>,
-        signingAlgorithms: Array<string>,
-    ): Promise<string> {
-        if (supportedMethods.includes('private_key_jwt')) {
-            return this.sign(data, signingAlgorithms);
-        }
-
-        throw new Error('No supported methods found.');
-    }
-
-    /**
-     * Signs a piece of data and returns the resulting encoded JWS.
-     * @param payload The payload to sign.
-     * @param signingAlgorithms The supported signing algorithms.
-     */
-    private async sign(
-        payload: string | Buffer,
-        signingAlgorithms: Array<string>,
-    ): Promise<string> {
-        const key = getKey(this.rp.keyStore, {
-            alg: signingAlgorithms,
-        });
-
-        if (key == null) {
-            throw Error('No keys found that match the supported algorithms');
-        }
-
-        return JWS.createSign(
-            {
-                fields: {
-                    alg: key.alg,
-                    typ: 'JWT',
-                },
-                format: this.format,
-            },
-            {
-                key,
-                reference: true,
-            },
-        ).final(payload);
     }
 
     /**
@@ -492,5 +387,110 @@ export class ItsmeClient {
                 reference: key.kty !== 'oct',
             },
         ).final(payload);
+    }
+
+    /**
+     * Signs a piece of data and returns the resulting encoded JWS.
+     * @param payload The payload to sign.
+     * @param signingAlgorithms The supported signing algorithms.
+     */
+    private async sign(
+        payload: string | Buffer,
+        signingAlgorithms: Array<string>,
+    ): Promise<string> {
+        const key = getKey(this.rp.keyStore, {
+            alg: signingAlgorithms,
+        });
+
+        if (key == null) {
+            throw Error('No keys found that match the supported algorithms');
+        }
+
+        return JWS.createSign(
+            {
+                fields: {
+                    alg: key.alg,
+                    typ: 'JWT',
+                },
+                format: this.format,
+            },
+            {
+                key,
+                reference: true,
+            },
+        ).final(payload);
+    }
+
+    private async tokenAuth(
+        data: string,
+        supportedMethods: Array<string>,
+        signingAlgorithms: Array<string>,
+    ): Promise<string> {
+        if (supportedMethods.includes('private_key_jwt')) {
+            return this.sign(data, signingAlgorithms);
+        }
+
+        throw new Error('No supported methods found.');
+    }
+
+    /**
+     * Returns the JWS payload if the JWS is valid. Errors if it is not.
+     * @param jws The encoded JWS to verify.
+     * @param supportedSigningAlgorithms Supported signing algorithms for this
+     * IDP.
+     * @param requiredFields An array of fields that are required for the JWT
+     * payload.
+     */
+    private async verify(
+        jws: string,
+        supportedSigningAlgorithms: Array<string>,
+        requiredFields: Array<string>,
+    ): Promise<JwtPayload> {
+        const timestamp = Math.floor(Date.now() / 1000);
+        const parts = jws.split('.');
+        const header: Header = JSON.parse(base64url.decode(parts[0]));
+        const payload: JwtPayload = JSON.parse(base64url.decode(parts[1]));
+
+        requiredFields.forEach(field => {
+            if (payload[field] === undefined) {
+                throw new Error(`Missing required JWT property ${field}`);
+            }
+        });
+
+        const alg = supportedSigningAlgorithms.find(a => a === header.alg);
+        if (alg === undefined) {
+            throw Error('No matching algorithm for verification found.');
+        }
+
+        assert.strictEqual(
+            payload.iss,
+            this.idp.configuration.issuer,
+            `Unexpected iss value '${payload.iss}' in token`,
+        );
+
+        if (payload.iat !== undefined) {
+            assert.strictEqual(typeof payload.iat, 'number', 'iat is not a number');
+            assert(payload.iat <= timestamp + this.clockTolerance, 'JWS issued in the future');
+        }
+
+        if (payload.nbf !== undefined) {
+            assert.strictEqual(typeof payload.nbf, 'number', 'nbf is not a number');
+            assert(payload.nbf <= timestamp + this.clockTolerance, 'JWS not active yet');
+        }
+
+        if (payload.exp !== undefined) {
+            assert(timestamp - this.clockTolerance < payload.exp, 'JWS expired');
+        }
+
+        // @todo Check if aud check is required and can ever be an array
+        if (payload.aud as any !== undefined) {
+            const aud: Array<string> = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+            assert(aud.includes(this.rp.clientId), 'aud is missing the client ID');
+        }
+
+        const key = await this.idp.getKey(header);
+        await JWS.createVerify(key).verify(jws);
+
+        return payload;
     }
 }

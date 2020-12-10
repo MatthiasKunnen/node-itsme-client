@@ -44,7 +44,7 @@ The generic login flow is implemented as follows
 This is the basic usage, more options and methods are available. Intellisense and jsdoc should
 help you find and understand them.
 
-```typeScript
+```typescript
 import { createKeyStore, IdentityProvider, ItsmeClient } from 'itsme-client';
 
 async function initItsmeClient() {
@@ -88,7 +88,7 @@ async function getRedirectToItsmeLink(itsmeClient: ItsmeClient) {
 
 ## Obtaining user info with an Authorization token
 
-```typeScript
+```typescript
 import { ItsmeClient } from 'itsme-client';
 
 async function wrapper(itsmeClient: ItsmeClient) {

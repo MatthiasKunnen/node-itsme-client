@@ -1,7 +1,7 @@
-[![npm version](https://img.shields.io/npm/v/itsme-client.svg?style=for-the-badge)
-](https://www.npmjs.com/package/itsme-client)
+[![npm version](https://img.shields.io/npm/v/itsme-client.svg?style=for-the-badge)](https://www.npmjs.com/package/itsme-client)
 
 # Itsme® client
+
 This library's purpose it to make your server's communication with itsme®
 more pleasant.
 
@@ -11,15 +11,15 @@ encrypting.
 
 # Features
 
- * Endpoint discovery
- * Exchanging an Authorization Token
- * Extracting claims from an ID Token
- * Getting claims from the User Info endpoint
- * Extracting your public keys as a JWK Set
- * Decrypting and verifying JWTs
- * Encrypting and signing JWTs
- * Key rollover
- * Normalizing returned values
+    * Endpoint discovery
+    * Exchanging an Authorization Token
+    * Extracting claims from an ID Token
+    * Getting claims from the User Info endpoint
+    * Extracting your public keys as a JWK Set
+    * Decrypting and verifying JWTs
+    * Encrypting and signing JWTs
+    * Key rollover
+    * Normalizing returned values
 
 The library is written in TypeScript, so typings are available. Plain Node.js
 will also work.
@@ -27,11 +27,13 @@ When using TypeScript, add `@node_modules/itsme-client/@types` to your
 [typeRoots](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#types-typeroots-and-types).
 
 # Usage
+
 ## Initialize ItsmeClient
+
 This is the basic usage, more options and methods are available. Intellisense and jsdoc should
 help you find and understand them.
 
-```TypeScript
+```typeScript
 import { createKeyStore, IdentityProvider, ItsmeClient } from 'itsme-client';
 
 async function initItsmeClient() {
@@ -49,7 +51,7 @@ async function initItsmeClient() {
 
 ## Obtaining user info with an Authorization token
 
-```TypeScript
+```typeScript
 import { ItsmeClient } from 'itsme-client';
 
 async function wrapper(itsmeClient: ItsmeClient) {
@@ -76,12 +78,14 @@ async function wrapper(itsmeClient: ItsmeClient) {
 ```
 
 ## Extracting your public keys as a JWK Set
+
 This library supports extracting your public keys as a JWK Set for easy exposure
 via URL or other means.
 
-```TypeScript
+```typeScript
 itsmeClient.getPublicJwkSet();
 ```
 
 # Responses
+
 RESPONSES.md contains examples of responses of certain methods.

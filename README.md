@@ -1,5 +1,9 @@
 [![npm version](https://img.shields.io/npm/v/itsme-client.svg?logo=npm&style=for-the-badge)
 ](https://www.npmjs.com/package/itsme-client)
+[![Build Status](https://img.shields.io/github/workflow/status/MatthiasKunnen/node-itsme-client/Main?label=Build&logo=github&style=for-the-badge)
+](https://github.com/MatthiasKunnen/node-itsme-client/actions)
+[![License](https://img.shields.io/npm/l/itsme-client?&style=for-the-badge&color=green)
+](https://github.com/MatthiasKunnen/node-itsme-client/blob/master/LICENSE)
 
 # Itsme® client
 This library's purpose it to make your server's communication with itsme®

@@ -14,7 +14,7 @@
         "test": "TS_NODE_PROJECT=tsconfig.json ts-node src/test.ts"
     },
     "dependencies": {
-        "axios": "^0.18.0",
+        "axios": "^0.21.1",
         "base64url": "^3.0.0",
         "jwk-rsa-compute-primes": "^1.0.0",
         "lru-cache": "^4.1.3",
